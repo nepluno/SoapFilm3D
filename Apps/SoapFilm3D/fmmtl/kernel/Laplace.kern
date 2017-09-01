@@ -1,0 +1,69 @@
+#ifndef FMMTL_LAPLACE_KERN
+#define FMMTL_LAPLACE_KERN
+
+#include "fmmtl/Kernel.hpp"
+
+#include "fmmtl/numeric/Vec.hpp"
+
+struct LaplacePotential
+    : public fmmtl::Kernel<LaplacePotential> {
+  typedef Vec<3,double>  source_type;
+  typedef double         charge_type;
+  typedef Vec<3,double>  target_type;
+  typedef double         result_type;
+  typedef double         kernel_value_type;
+
+  /** Kernel evaluation
+   * K(t,s) =  1 / R  if R > 0
+   *           0      else
+   * where R = |s-t|_2
+   */
+  FMMTL_INLINE
+  kernel_value_type operator()(const target_type& t,
+                               const source_type& s) const {
+    double R2 = norm_2_sq(s - t);             //   R^2
+    double invR2;                             //   1 / R^2
+    if (R2 > 0)  invR2 = 1.0 / R2;            //   Exclude self interaction
+    else         invR2 = 0.0;
+    return std::sqrt(invR2);                  //   Potential
+  }
+  FMMTL_INLINE
+  kernel_value_type transpose(const kernel_value_type& kts) const {
+    return kts;
+  }
+};
+FMMTL_KERNEL_EXTRAS(LaplacePotential);
+
+struct LaplaceKernel
+    : public fmmtl::Kernel<LaplaceKernel> {
+  typedef Vec<3,double>  source_type;
+  typedef double         charge_type;
+  typedef Vec<3,double>  target_type;
+  typedef Vec<4,double>  result_type;
+  typedef Vec<4,double>  kernel_value_type;
+
+  /** Kernel evaluation
+   * K(t,s) =  {1/R, (s-t)/R^3}  if R > 0
+   *           {0,0,0,0}         else
+   * where R = |s-t|_2
+   */
+  FMMTL_INLINE
+  kernel_value_type operator()(const target_type& t,
+                               const source_type& s) const {
+    Vec<3,double> dist = s - t;            //   Vector from target to source
+    double R2 = norm_2_sq(dist);           //   R^2
+    double invR2;                          //   1 / R^2
+    if (R2 > 0)  invR2 = 1.0 / R2;         //   Exclude self interaction
+    else         invR2 = 0.0;
+    double invR = std::sqrt(invR2);        //   Potential
+    dist *= invR2 * invR;                  //   Force
+    return kernel_value_type(invR, dist[0], dist[1], dist[2]);
+  }
+  FMMTL_INLINE
+  kernel_value_type transpose(const kernel_value_type& kts) const {
+    return kernel_value_type(kts[0], -kts[1], -kts[2], -kts[3]);
+  }
+};
+FMMTL_KERNEL_EXTRAS(LaplaceKernel);
+
+#endif

@@ -1,0 +1,261 @@
+
+MISSING  
+done TripleProduct  Angle  IsCollinear  Rotate  Project
+done Normalize (non-member)  Norm (non-member)
+done  ==, != 
+skip Equals (with eps) ApproximatelyEqual 
+done LargestAbsComp SmallestAbsComp
+done CompMult CompDiv
+
+
+
+
+constructors
+
+CVec3T() 
+CVec3T( const CVec3T& c )
+CVec3T( const F& a, const F& b, const F& c)
+CVec3T( const F* a )
+~CVec3T( void ) {}
+
+----------------------------------------------------------------------
+casts
+
+operator const F*( void )
+
+----------------------------------------------------------------------
+accessors
+
+F& x( void )
+F& y( void )
+F& z( void )
+F& operator() (int i) 
+done F operator() const (int i)
+
+----------------------------------------------------------------------
+assignments
+
+CVec3T& operator= ( const CVec3T<G>& c )   ad/c
+CVec3T& operator+=( const CVec3T<G>& c )   ad/c
+CVec3T& operator-=( const CVec3T<G>& c )   ad/c
+CVec3T& operator*=( const G& s )           ad/c
+CVec3T& operator/=( const G& s )           ad/c
+
+
+----------------------------------------------------------------------
+no param members
+
+
+
+CVec3T operator-( void )
+CVec3T dir( void )
+
+void normalize( void ) (synonym Normalize)
+
+F      dot( void )     (synonym LengthSquared)
+F      l2( void )      (synomym Length)
+F      length( void )
+F      l1( void )    
+F      linfty( void )
+
+----------------------------------------------------------------------
+IO
+
+ostream& operator<<( ostream& os, const CVec3T<F>& v)
+istream& operator>>( istream& is, CVec3T<F>& v)
+
+----------------------------------------------------------------------
+binary arithmetics 
+
+MAKE all these into non-member functions
+
+CVec3T<F> operator+( const CVec3T<F>& a, const CVec3T<F>& b)  ad/ad, c/ad, ad/c
+CVec3T<F> operator-( const CVec3T<F>& a, const CVec3T<F>& b)  ad/ad, c/ad, ad/c
+
+CVec3T<F> operator*( const CVec3T<F>& a, F b)                 ad/ad, c/ad, ad/c
+CVec3T<F> operator*( const F& s, const CVec3T& c )	      ad/ad, c/ad, ad/c
+CVec3T<F> operator/( const CVec3T<F>& a, F b)                 ad/ad, c/ad, ad/c
+
+----------------------------------------------------------------------
+min/max
+
+CVec3T<F> min  ( const CVec3T<F>& a, const CVec3T<F>& b) none 
+CVec3T<F> max  ( const CVec3T<F>& a, const CVec3T<F>& b) none
+
+----------------------------------------------------------------------
+geometry
+
+CVec3T<F> cross( const CVec3T<F>& a, const CVec3T<F>& b)   ad/ad, c/ad, ad/c (syn Cross)
+CVec3T<F> dot  ( const CVec3T<F>& a, const CVec3T<F>& b)   ad/ad, c/ad, ad/c (syn Dot)
+CVec3T<F> dist ( const CVec3T<F>& a, const CVec3T<F>& b)   ad/ad, c/ad, ad/c (syn Distance)
+CVec3T<F> lerp ( const CVec3T<F>& a, const CVec3T<F>& b, F t)  7  
+
+MISSING
+  TripleProduct 
+  Angle
+  IsCollinear
+  Rotate
+  Project
+
+  Normalize (non-member)
+  Norm (non-member)
+----------------------------------------------------------------------
+comparison
+
+MISSING
+  ==, != Equals (with eps) ApproximatelyEqual 
+
+----------------------------------------------------------------------
+min/max component
+
+MISSING
+LargestAbsComp
+SmallestAbsComp
+
+----------------------------------------------------------------------
+component ops 
+
+MISSING
+CompMult
+CompDiv
+
+
+**********************************************************************
+
+constructors
+
+Vector3d();
+Vector3d(const Vector3d &v);
+Vector3d(const Real x, const Real y, const Real z);
+explicit Vector3d(const Real v[3]);
+
+DDD Vector3d(const Vector3d& a, const Vector3d& b); 
+
+
+
+----------------------------------------------------------------------
+casts
+
+
+----------------------------------------------------------
+// accessors
+CAST const Real* GetArray() const;
+DDD void Set(const Real x, const Real y, const Real z);
+DDD void Set(const Real v[3]);
+DDD void Get(Real& x, Real& y, Real& z) const;
+DDD void Get(Real v[]) const;
+
+DDD void x(Real newX);
+DDD void y(Real newY);
+DDD void z(Real newZ);
+
+Real x() const;
+Real y() const;
+Real z() const;
+
+CHANGE to paren
+Real& operator[](const int i);
+const Real& operator[](const int i) const;
+
+----------------------------------------------------------------------
+assignments
+
+
+Vector3d& operator=(const Vector3d& other);
+Vector3d& operator+=(const Vector3d& rVector);
+DDD Vector3d& operator+=(const Vector3d* pVector);
+Vector3d& operator-=(const Vector3d& rVector);
+DDD Vector3d& operator-=(const Vector3d* pVector);
+Vector3d& operator*=(Real d);
+Vector3d& operator/=(Real d);
+----------------------------------------------------------------------
+no param members
+
+Vector3d operator-() const;
+
+inline Real Normalize();
+
+Real LengthSquared() const;
+inline Real Length() const;
+
+----------------------------------------------------------------------
+IO
+
+std::ostream& operator<<(std::ostream& o, const Vector3d& v);
+
+----------------------------------------------------------------------
+binary arithmetics
+
+Vector3d operator+(const Vector3d& u, const Vector3d& v);
+Vector3d operator-(const Vector3d& u, const Vector3d& v);
+Vector3d operator*(const Vector3d& u, const Real s);
+Vector3d operator*(const Real s, const Vector3d& u);
+Vector3d operator/(const Vector3d& u, const Real s);
+
+
+----------------------------------------------------------------------
+geometry
+
+Vector3d Cross(const Vector3d& u, const Vector3d& v);
+DDD Vector3d Cross(const Vector3d& v) const;
+Real Dot(const Vector3d& u, const Vector3d& v);
+DDD inline Real Dot(const Vector3d& v) const;
+DDD inline Real Dot(const Vector3d* pV) const;
+static Real Distance(const Vector3d& v1, const Vector3d& v2);
+
+
+static Real Angle(const Vector3d& pU, const Vector3d& pV);
+
+DDD int IsCollinear(Vector3d *pVector) const;
+int IsCollinear(Vector3d &vector) const;
+Vector3d Rotate(const Real angle, const Vector3d& around) const;
+static Vector3d Project(const Vector3d& a, const Vector3d& b);
+static Real DistanceSquare(const Vector3d& v1, const Vector3d& v2);
+static Vector3d Normalize(const Vector3d& v);
+inline Real TripleProduct(const Vector3d& u, const Vector3d& v, const
+			Vector3d& w ) 
+
+
+could be defined as members 
+
+inline Real Norm(const Vector3d& u)
+Real norm(const Vector3d& u);
+
+----------------------------------------------------------------------
+comparison
+
+
+DDD int ApproximatelyEqual( const Vector3d& v1, const Vector3d& v2 );
+int operator==(const Vector3d& v1, const Vector3d& v2);
+int operator!=(const Vector3d& v1, const Vector3d& v2);
+bool Equals(const Vector3d& v, const Real eps = 10.0f * std::numeric_limits<Real>::epsilon() )
+
+----------------------------------------------------------------------
+min/max component
+
+int LargestAbsComp() const;
+int SmallestAbsComp() const;
+
+----------------------------------------------------------------------
+component ops
+
+DDD void CompMult(const Vector3d& v);
+DDD void CompDiv(const Vector3d& v);
+Vector3d CompMult(const Vector3d& v1, const Vector3d& v2);
+Vector3d CompDiv(const Vector3d& v1, const Vector3d& v2);
+
+
+----------------------------------------------------------------------
+
+crap
+
+#define APPROXIMATELY_ZERO 1.0e-10
+#define X 0
+#define Y 1
+#define Z 2
+
+static Vector3d Zero;
+static Vector3d Nan; 
+static Vector3d BaryAverage(const BaryCoord& b, const Vector3d v[3]);
+void Clear();
+void Negate();

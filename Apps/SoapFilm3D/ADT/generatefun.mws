@@ -1,0 +1,306 @@
+{VERSION 6 0 "IBM INTEL NT" "6.0" }
+{USTYLETAB {CSTYLE "Maple Input" -1 0 "Courier" 0 1 255 0 0 1 0 1 0 0 
+1 0 0 0 0 1 }{CSTYLE "2D Math" -1 2 "Times" 0 1 0 0 0 0 0 0 2 0 0 0 0 
+0 0 1 }{CSTYLE "2D Output" 2 20 "" 0 1 0 0 255 1 0 0 0 0 0 0 0 0 0 1 }
+{PSTYLE "Normal" -1 0 1 {CSTYLE "" -1 -1 "Times" 1 12 0 0 0 1 2 2 2 2 
+2 2 1 1 1 1 }1 1 0 0 0 0 1 0 1 0 2 2 0 1 }{PSTYLE "Warning" -1 7 1 
+{CSTYLE "" -1 -1 "Courier" 1 10 0 0 255 1 2 2 2 2 2 1 1 1 3 1 }1 1 0 
+0 0 0 1 0 1 0 2 2 0 1 }{PSTYLE "Maple Output" -1 11 1 {CSTYLE "" -1 
+-1 "Times" 1 12 0 0 0 1 2 2 2 2 2 2 1 1 1 1 }3 3 0 0 0 0 1 0 1 0 2 2 
+0 1 }{PSTYLE "Maple Output" -1 12 1 {CSTYLE "" -1 -1 "Times" 1 12 0 0 
+0 1 2 2 2 2 2 2 1 1 1 1 }1 3 0 0 0 0 1 0 1 0 2 2 0 1 }}
+{SECT 0 {EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 14 "with(codegen):" }}
+{PARA 7 "" 1 "" {TEXT -1 70 "Warning, the protected name MathML has be
+en redefined and unprotected\n" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 
+1 0 18 "with(StringTools):" }}{PARA 7 "" 1 "" {TEXT -1 58 "Warning, th
+e assigned name Group now has a global binding\n" }}}{EXCHG {PARA 0 ">
+ " 0 "" {MPLTEXT 1 0 13 "with(linalg):" }}{PARA 7 "" 1 "" {TEXT -1 80 
+"Warning, the protected names norm and trace have been redefined and u
+nprotected\n" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 15 "with(combin
+at):" }}{PARA 7 "" 1 "" {TEXT -1 62 "Warning, the assigned name fibona
+cci now has a global binding\n" }}{PARA 7 "" 1 "" {TEXT -1 67 "Warning
+, the protected name Chi has been redefined and unprotected\n" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 13 "Digits := 30;" }}{PARA 11 "
+" 1 "" {XPPMATH 20 "6#>%'DigitsG\"#I" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 209 "makeopun := g -> subs(\{f(x,y) = a__value(), diff(f(
+x,y),x) = a__gradient(i),diff(f(x,y),y) = a__gradient(j), diff(f(x,y),
+x,y) = a__hessian(i,j) \}, opinst(g(f(x,y)), diff( g(f(x,y)), x),diff(
+ g(f(x,y)), x,y))):" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 403 "mak
+eopbiaa := g -> subs(\{f1(x,y) = a1__value(), diff(f1(x,y),x) = a1__gr
+adient(i),diff(f1(x,y),y) = a1__gradient(j), diff(f1(x,y),x,y) = a1__h
+essian(i,j), \n                         f2(x,y) = a2__value(), diff(f2
+(x,y),x) = a2__gradient(i),diff(f2(x,y),y) = a2__gradient(j), diff(f2(
+x,y),x,y) = a2__hessian(i,j) \}, \nopinst(g(f1(x,y),f2(x,y)), diff( g(
+f1(x,y),f2(x,y)), x),diff( g(f1(x,y),f2(x,y)), x,y))):" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 217 "makeopbiac := g -> subs(\{f(x,y) =
+ a__value(), diff(f(x,y),x) = a__gradient(i),diff(f(x,y),y) = a__gradi
+ent(j), diff(f(x,y),x,y) = a__hessian(i,j)\}, \nopinst(g(f(x,y),c), di
+ff( g(f(x,y),c), x),diff( g(f(x,y),c), x,y))):" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 217 "makeopbica := g -> subs(\{f(x,y) = a__value()
+, diff(f(x,y),x) = a__gradient(i),diff(f(x,y),y) = a__gradient(j), dif
+f(f(x,y),x,y) = a__hessian(i,j)\}, \nopinst(g(c,f(x,y)), diff( g(c,f(x
+,y)), x),diff( g(c,f(x,y)), x,y))):" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 717 "repl := proc(expr)\n   local arglist; \n   arglist :
+= [op(expr)]; \n  if nops(expr) = 1 then  expr; \n   elif op(0, expr) \+
+= `^` and nops(expr) = 2 then\n      if  ( 2*op(2,expr) = -1)  then  1
+/'sqrt'(repl(op(1,expr)));\n      elif( 2*op(2,expr) =  1)  then    's
+qrt'(repl(op(1,expr)));\n      elif(   op(2,expr) = -1)  then        1
+/(repl(op(1,expr)));\n      elif(   op(2,expr) =  2)  then       sqr(r
+epl(op(1,expr)));\n      elif(   op(2,expr) = -2)  then     1/sqr(repl
+(op(1,expr)));\n      elif(   op(2,expr) = -3)  then     1/cub(repl(op
+(1,expr)));\n      elif(   op(2,expr) =  3)  then       cub(repl(op(1,
+expr)));\n      else pow(op( map(repl,arglist)));\n      fi;\n   else \+
+ op(0, expr)(op( map(repl,arglist)));\n   fi;\nend:" }}{PARA 0 "> " 0 
+"" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 556 "mak
+efun := proc( gname, subsexpr,oplist,hdr1, hdr2)\n   local expr, temps
+, tempdefs, s;\n   s := \"\";\n   s := cat(s, sprintf(\"%s %s %s\", hd
+r1, gname, hdr2));  \n   temps := map( op, map( x-> indets(op(2,x)), s
+ubsexpr));\n   tempdefs := evalf([solve( subsexpr,temps)][1]);\n   for
+ expr in map( repl,tempdefs) do\n     s := cat(s, sprintf(\"    constr
+eal %a;\\n\",expr )); \n   od; \n   s := cat(s, sprintf(\"    %a;\",re
+pl(map( evalf,map( factor, map(radsimp,  subs( subsexpr, oplist)))))))
+;\n   s := cat(s, sprintf( \"\\n  \}\\n\"));\n   s := RegSubs( \"__\" \+
+= \".\", s);\n end:   \n" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 
+159 "biaacollect := z-> map( x-> collect(x,[a1__gradient(i), a2__gradi
+ent(j),a2__gradient(i), a1__gradient(j), a1__hessian(i,j), a2__hessian
+(i,j)], distributed),z);" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%,biaacol
+lectGf*6#%\"zG6\"6$%)operatorG%&arrowGF(-%$mapG6$f*6#%\"xGF(F)F(-%(col
+lectG6%9$7(-%-a1__gradientG6#%\"iG-%-a2__gradientG6#%\"jG-F<F9-F8F=-%,
+a1__hessianG6$F:F>-%,a2__hessianGFC%,distributedGF(F(F(F5F(F(F(" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}{PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 0 "" }}{PARA 7 "" 1 "" {TEXT -1 53 "Warning, incomplete s
+tring;  use \" to end the string\n" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 118 "uncollect :=  z-> map( x-> collect(x,[a__gradient(i)
+, a__gradient(j), a__hess(i,j), a__hessian(i,j)], distributed),z);" }}
+{PARA 11 "" 1 "" {XPPMATH 20 "6#>%*uncollectGf*6#%\"zG6\"6$%)operatorG
+%&arrowGF(-%$mapG6$f*6#%\"xGF(F)F(-%(collectG6%9$7&-%,a__gradientG6#%
+\"iG-F86#%\"jG-%(a__hessG6$F:F=-%+a__hessianGF@%,distributedGF(F(F(F5F
+(F(F(" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 55 "adrealinstname := \+
+\"adreal<NUM_VARS,DO_HESS,constreal>\":" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 95 "hdr1   := \"template <int NUM_VARS,int DO_HESS, class
+ constreal>\\n  \" || adrealinstname || \"  \":" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 53 "hdr2un := \"(const \" || adrealinstname || \" \+
+& a) \{\\n\":" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 91 "hdr2aa := \+
+\"(const \" || adrealinstname || \" & a1, const \" || adrealinstname |
+| \" & a2) \{\\n\":" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 66 "hdr2
+ac := \"(const \" || adrealinstname || \" & a, constreal c) \{\\n\":" 
+}}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 66 "hdr2ca := \"(constreal c,
+ const \" || adrealinstname || \" & a) \{\\n\":" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 135 "#hdr1member  := \"template <int NUM_VARS,clas
+s constreal>\\n \" || adrealinstname || \"  \" || adrealinstname || \"
+ ::\":\nhdr1member  := hdr1:" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 
+0 87 "#hdr2membera := \"(const \" || adrealinstname || \" & a) const\{
+\\n\":\nhdr2membera := hdr2aa:" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 
+1 0 65 "#hdr2memberc := \"(constreal c) const \{\\n\":\nhdr2memberc :=
+ hdr2ac:" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 102 "fixfuncnames := s -> RegSubs( \"ar
+csin\" = \"asin\", RegSubs( \"arccos\"=\"acos\", RegSubs(\"ln\" = \"lo
+g\",s))): " }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 46 "fixatan := s \+
+-> RegSubs( \"arctan\" = \"atan\",s):" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 48 "fixatan2 := s -> RegSubs( \"arctan\" = \"atan2\",s):
+" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 146 "#memberasubs := s-> Re
+gSubs(\"a2\\\\.\" = \"a.\",RegSubs( \"a1\\\\.\" = \"\", s)): \nmembera
+subs := s-> RegSubs(\"a2\\\\.\" = \"a2.\",RegSubs( \"a1\\\\.\" = \"a1.
+\", s)): " }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 46 "membercsubs :=
+ s-> RegSubs( \"a\\\\.\" = \"a.\", s):" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 55 "# unary sqrt, sin, cos, tan, exp, atan, asin, acos, l
+og" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 511 "uni_funcs := [ \n  [
+sqrt, \{a__value() = 1/f^2\} ],\n  [sin,  \{sin(a__value()) = sina, co
+s(a__value())= cosa\}],\n  [cos,  \{sin(a__value()) = sina, cos(a__val
+ue())= cosa\}],\n  [tan,  \{tan(a__value()) = tana, tan(a__value())^2 \+
+= tana2\}],\n  [exp,  \{exp(a__value()) =expa\}],\n  [arctan, \{ 1+(a_
+_value())^2 = 1/f \}],\n  [arcsin, \{(1-(a__value())^2)^(-1/2) = sqrt1
+a,(1-(a__value())^2)^(-3/2) = sqrt1a^3\}],\n  [arccos, \{(1-(a__value(
+))^2)^(-1/2) = sqrt1a,(1-(a__value())^2)^(-3/2) = sqrt1a^3\}],\n  [log
+,  \{a__value() = 1/f\}]\n ]:" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 
+0 98 "uni_funcdefs :=  cat( op( map ( x -> makefun(op(x),makeopun(op(1
+,x)), hdr1, hdr2un), uni_funcs))):" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 124 "makefun( arcsin, \{(1-(a__value())^2)^(-1/2) = sqrt1
+a,(1-(a__value())^2)^(-3/2) = sqrt1a^3\}, makeopun(arcsin), hdr1, hdr2
+un);" }}{PARA 12 "" 1 "" {XPPMATH 20 "6#Qg_ltemplate~<int~NUM_VARS,int
+~DO_HESS,~class~constreal>|+~~adreal<NUM_VARS,DO_HESS,constreal>~~~arc
+sin~(const~adreal<NUM_VARS,DO_HESS,constreal>~&~a)~|fr|+~~~~constreal~
+sqrt1a~=~1/sqrt(-1.*sqr(a.value())+1.);|+~~~~opinst(arcsin(a.value()),
+a.gradient(i)*sqrt1a,sqrt1a*(a.hessian(i,j)+a.gradient(i)*sqr(sqrt1a)*
+a.value()*a.gradient(j)));|+~~|hr|+6\"" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 102 "member
+a_funcs := [ \n  [`+`, \"operator+\", \{\} ],\n  [`-`, \"operator-\", \+
+\{\} ],\n  [`*`, \"operator*\", \{\} ]\n];" }}{PARA 11 "" 1 "" 
+{XPPMATH 20 "6#>%.membera_funcsG7%7%%\"+GQ*operator+6\"<\"7%%\"-GQ*ope
+rator-F)F*7%%\"*GQ*operator*F)F*" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 272 "member_funcdefs :=  cat( \nmemberasubs(cat( op( map \+
+( x -> makefun(op(2,x), op(3,x),makeopbiaa(op(1,x)), hdr1member, hdr2m
+embera), membera_funcs)))),\nmembercsubs(cat( op( map ( x -> makefun(o
+p(2,x), op(3,x),makeopbiac(op(1,x)), hdr1member, hdr2memberc), membera
+_funcs))))):" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 1216 "bi_funcdefs := fixfuncnames( cat \+
+( \nmakefun( atan2, \{a1__value()^2 + a2__value()^2 = 1/f\},      map(
+ biaacollect,simplify( makeopbiaa(arctan))), hdr1, hdr2aa),\nmakefun( \+
+atan2, \{a__value()^2 + c^2 = 1/f\},             map( uncollect , simp
+lify( makeopbiac(arctan))), hdr1 ,hdr2ac) ,\nmakefun( atan2, \{a__valu
+e()^2 + c^2 = 1/f\},             map( uncollect , simplify( makeopbica
+(arctan))), hdr1 ,hdr2ca) ,\nmakefun( pow,    \{\},                   \+
+             map( biaacollect,simplify( makeopbiaa(`^`)   )), hdr1, hd
+r2aa),\nmakefun( pow,    \{\},                                map( unc
+ollect,  simplify( makeopbiac(`^`)   )), hdr1, hdr2ac),\nmakefun( pow,
+    \{\},                                map( uncollect,  simplify( ma
+keopbica(`^`)   )), hdr1, hdr2ca),\nmakefun( \"operator+\",    \{\},  \+
+                      map( uncollect,  simplify( makeopbica(`+`)   )),
+ hdr1, hdr2ca),\nmakefun( \"operator-\",    \{\},                     \+
+   map( uncollect,  simplify( makeopbica(`-`)   )), hdr1, hdr2ca),\nma
+kefun( \"operator*\",    \{\},                        map( uncollect, \+
+ simplify( makeopbica(`*`)   )), hdr1, hdr2ca), \nmakefun( \"operator/
+\",    \{\},                        map( uncollect,  simplify( makeopb
+ica(`/`)   )), hdr1, hdr2ca))):" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 
+1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 43 "fixminone := s -
+> RegSubs( \"1\\\\.\\\\*\"=\"\",s);" }}{PARA 11 "" 1 "" {XPPMATH 20 "6
+#>%*fixminoneGf*6#%\"sG6\"6$%)operatorG%&arrowGF(-_%,StringToolsG%(Reg
+SubsG6$/Q&1\\.\\*F(Q!F(9$F(F(F(" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 
+1 0 56 "currentdir(\"C:\\\\users\\\\dzorin\\\\src\\\\ad2\"); currentdi
+r();" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#Q8C:\\users\\dzorin\\src\\ad26
+\"" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}{PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 190 "fprintf( \"adreal_maple.h\",\"%s\", cat ( fixminone(
+ member_funcdefs),fixfuncnames(fixatan(fixminone( uni_funcdefs))),fixa
+tan2(fixfuncnames(fixminone( bi_funcdefs))))); fclose(\"adreal_maple.h
+\"):" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#\"%![)" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "
+" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 41 "# test list bivar: -, +
+, *, /, atan2, pow" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 57 "# uni
+var: sqrt, sin, cos, tan, exp, asin, acos, atan, log" }}}{EXCHG {PARA 
+0 "> " 0 "" {MPLTEXT 1 0 49 "# how to test: test NUM_VARS = 1 and NUM_
+VARS = 3" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 53 "# take two rand
+om functions with NUM_VARS arguments  " }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 26 "# test for a set of values" }}}{EXCHG {PARA 0 "> " 0 
+"" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 40 "vals
+ := [10^(6), 10, 1, 0.1, 1, 1e-6,0]:" }}{PARA 0 "> " 0 "" {MPLTEXT 1 
+0 27 "fun1 := [sin(x1), 2*x1^3]; " }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>
+%%fun1G7$-%$sinG6#%#x1G,$*&\"\"#\"\"\")F)\"\"$F-F-" }}}{EXCHG {PARA 0 
+"> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 
+0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 80 "fun3 := [(x2+x3^2)*s
+in(x1) + 3*x2^3*x3, tan(x2)*x3*2*x1^2 + cos(x3)*x2^2*x1];   " }}{PARA 
+11 "" 1 "" {XPPMATH 20 "6#>%%fun3G7$,&*&,&%#x2G\"\"\"*$)%#x3G\"\"#F*F*
+F*-%$sinG6#%#x1GF*F**(\"\"$F*)F)F4F*F-F*F*,&**F.F*-%$tanG6#F)F*F-F*)F2
+F.F*F**(-%$cosG6#F-F*)F)F.F*F2F*F*" }}}{EXCHG {PARA 0 "> " 0 "" 
+{MPLTEXT 1 0 19 "vars := [x1,x2,x3];" }}{PARA 11 "" 1 "" {XPPMATH 20 "
+6#>%%varsG7%%#x1G%#x2G%#x3G" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 
+66 "hess := (f,n) -> matrix(n,n, (i,j) -> diff(f, vars[i], vars[j])); \+
+" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#>%%hessGf*6$%\"fG%\"nG6\"6$%)opera
+torG%&arrowGF)-%'matrixG6%9%F0f*6$%\"iG%\"jGF)F*F)-%%diffG6%T$&%%varsG
+6#9$&F:6#F0F)F)6$F'F<F)F)F)" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 
+55 "gradient := (f,n) -> vector(n, i -> diff(f, vars[i])); " }}{PARA 
+11 "" 1 "" {XPPMATH 20 "6#>%)gradientGf*6$%\"fG%\"nG6\"6$%)operatorG%&
+arrowGF)-%'vectorG6$9%f*6#%\"iGF)F*F)-%%diffG6$T$&%%varsG6#9$F)F)6$F'F
+;F)F)F)" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 17 "hess(fun3[2],3 )
+;" }}{PARA 11 "" 1 "" {XPPMATH 20 "6#K%'matrixG6#7%7%,$*(\"\"%\"\"\"-%
+$tanG6#%#x2GF+%#x3GF+F+,&**F*F+,&F+F+*$)F,\"\"#F+F+F+F0F+%#x1GF+F+*(F6
+F+-%$cosG6#F0F+F/F+F+,&*(F*F+F,F+F7F+F+*&-%$sinGF;F+)F/F6F+!\"\"7%F1,&
+*,F*F+F,F+F3F+F0F+)F7F6F+F+*(F6F+F9F+F7F+F+,&*(F6F+F3F+FFF+F+**F6F+F?F
++F/F+F7F+FB7%F<FH,$*(F9F+FAF+F7F+FBQ(pprint06\"" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "
+" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 2166 "maketestbivar  := pro
+c(oper, Coper, numvars, op1, op2, vals)    \n local v1,v2, h1,h2, g1,g
+2,vres, hres, gres, s;\n s := \"\";\n vres := map( evalf, subs( conver
+t( zip( (x,y) -> (x = y), vars, vals), set), oper(op1,op2) )); \n v1  \+
+ := map( evalf, subs( convert( zip( (x,y) -> (x = y), vars, vals), set
+), op1));\n v2   := map( evalf, subs( convert( zip( (x,y) -> (x = y), \+
+vars, vals), set), op2));\n gres := map( evalf, subs( convert( zip( (x
+,y) -> (x = y), vars, vals), set), gradient( oper(op1,op2),numvars)));
+ \n g1   := map( evalf, subs( convert( zip( (x,y) -> (x = y), vars, va
+ls), set), gradient(op1,numvars)));\n g2   := map( evalf, subs( conver
+t( zip( (x,y) -> (x = y), vars, vals), set), gradient(op2,numvars)));
+\n hres := map( evalf, subs( convert( zip( (x,y) -> (x = y), vars, val
+s), set), hess( oper(op1,op2),numvars))); \n h1   := map( evalf, subs(
+ convert( zip( (x,y) -> (x = y), vars, vals), set), hess(op1,numvars))
+);\n h2   := map( evalf, subs( convert( zip( (x,y) -> (x = y), vars, v
+als), set), hess(op2,numvars)));\n g1 := map( Re, g1); g2 := map( Re, \+
+g2); gres := map( Re, gres); \n h1 := map( Re, h1); h2 := map( Re, h2)
+; hres := map( Re, hres); \n\n s := cat(s,sprintf(\"\{ cout << \\\"tes
+ting \\\" << \\\"%s\\\" << endl;\\n\", Coper ));\n s:=cat(s,sprintf(\"
+  double g1  [%d] = \{ %q \};\\n\",numvars,   op(convert(g1,list))));
+\n s:=cat(s,sprintf(\"  double g2  [%d] = \{ %q \};\\n\",numvars,   op
+(convert(g2,list))));\n s:=cat(s,sprintf(\"  double gres[%d] = \{ %q \+
+\};\\n\",numvars,   op(convert(gres,list))));\n s:=cat(s,sprintf(\"  d
+ouble h1  [%d] = \{ %q \};\\n\",numvars^2, op(map( x->op(convert(x,lis
+t)), [row(h1,  1..numvars)]))));\n s:=cat(s,sprintf(\"  double h2  [%d
+] = \{ %q \};\\n\",numvars^2, op(map( x->op(convert(x,list)), [row(h2,
+  1..numvars)]))));\n s:=cat(s,sprintf(\"  double hres[%d] = \{ %q \};
+\\n\",numvars^2, op(map( x->op(convert(x,list)), [row(hres,1..numvars)
+]))));\n s:=cat(s,sprintf(\"  adreal<%d,DO_HESS_TEST,double> ad1(%a, g
+1,h1), ad2(%a, g2,h2), adresMaple(%a, gres,hres);\\n\", numvars, evalf
+(v1),evalf(v2),evalf(vres)));\n s:=cat(s,sprintf(\"  adreal<%d,DO_HESS
+_TEST,double> adresC(%s);\\n\", numvars, Coper)); \n s:=cat(s,sprintf(
+\"  compareAD(adresMaple, adresC);\\n\}\\n\"));\n s;\nend: " }}{PARA 
+0 "> " 0 "" {MPLTEXT 1 0 0 "" }}{PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}{PARA 0 "> " 0 "" {MPLTEXT 1 0 
+0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "
+> " 0 "" {MPLTEXT 1 0 1503 "maketestunivar  := proc( oper, Coper, numv
+ars, op1, vals)    \n local v1, h1, g1,vres, hres, gres,s;\n s := \"\"
+;\n vres := map( evalf, subs( convert( zip( (x,y) -> (x = y), vars, va
+ls), set), oper(op1) )); \n v1   := map( evalf, subs( convert( zip( (x
+,y) -> (x = y), vars, vals), set), op1));\n gres := map( evalf, subs( \+
+convert( zip( (x,y) -> (x = y), vars, vals), set), gradient( oper(op1)
+,numvars))); \n g1   := map( evalf, subs( convert( zip( (x,y) -> (x = \+
+y), vars, vals), set), gradient(op1,numvars)));\n hres := map( evalf, \+
+subs( convert( zip( (x,y) -> (x = y), vars, vals), set), hess( oper(op
+1),numvars))); \n h1   := map( evalf, subs( convert( zip( (x,y) -> (x \+
+= y), vars, vals), set), hess(op1,numvars)));\n s := cat(s,sprintf(\"
+\{ cout << \\\"testing \\\" << \\\"%s\\\" << endl;\\n\", Coper ));\n s
+ := cat(s,sprintf(\"  double g1  [%d] = \{ %q \};\\n\",numvars,   op(c
+onvert(g1,list))));\n s := cat(s,sprintf(\"  double gres[%d] = \{ %q \+
+\};\\n\",numvars,   op(convert(gres,list))));\n s := cat(s,sprintf(\" \+
+ double h1  [%d] = \{ %q \};\\n\",numvars^2, op(map( x->op(convert(x,l
+ist)), [row(h1,  1..numvars)]))));\n s := cat(s,sprintf(\"  double hre
+s[%d] = \{ %q \};\\n\",numvars^2, op(map( x->op(convert(x,list)), [row
+(hres,1..numvars)]))));\n s := cat(s,sprintf(\"  adreal<%d,DO_HESS_TES
+T,double> ad1(%a, g1,h1), adresMaple(%a, gres,hres);\\n\", numvars, ev
+alf(v1),evalf(vres)));\n s := cat(s,sprintf(\"  adreal<%d,DO_HESS_TEST
+,double> adresC(%s);\\n\", numvars, Coper)); \n s := cat(s,sprintf(\" \+
+ compareAD(adresMaple, adresC);\\n\}\\n\"));\n s;\nend: " }}}{EXCHG 
+{PARA 0 "> " 0 "" {MPLTEXT 1 0 638 "maketests := proc(funlist, numvarl
+ist, oplist, vals)\n  local f, oper, cpiterator, i, valargs,numvars,s;
+ \n  s := \"\"; \n  for numvars in numvarlist do \n     for f in funli
+st do\n      for oper in oplist do \n      cpiterator := cartprod([seq
+(vals, i = 1..numvars)]); \n        while not cpiterator[finished] do \+
+\n          valargs := cpiterator[nextvalue]();\n          operf := (m
+ap( evalf, subs( convert( zip( (x,y) -> (x = y), vars, valargs), set),
+oper )));\n          if f[3](op(operf))  then  \n            s:=cat(s,
+maketestbivar(  f[1], f[2], numvars, op(oper), valargs));\n          f
+i; \n        end do;  \n      od;\n    od; \n   od;\n   s;\nend:" }}
+{PARA 7 "" 1 "" {TEXT -1 71 "Warning, `operf` is implicitly declared l
+ocal to procedure `maketests`\n" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 
+1 0 347 "bifunc := [ \n  [(x,y) -> x-y, \"ad1-ad2\", (x,y) -> true], \+
+\n  [(x,y) -> x+y, \"ad1+ad2\", (x,y) -> true], \n  [(x,y) -> x*y, \"a
+d1*ad2\", (x,y) -> true],\n  [(x,y) -> x/y, \"ad1/ad2\", (x,y) -> eval
+b(y <> 0)],\n  [(x,y) -> arctan(x,y), \"atan2(ad1,ad2)\", (x,y)-> eval
+b( x <> 0 or y <> 0)],\n  [(x,y) -> x^y, \"pow(ad1,ad2)\", (x,y) -> ev
+alb(x > 0 and y < 20)]\n]:" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 
+65 "# univar: unary-, sqrt, sin, cos, tan, exp, asin, acos, atan, log
+" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 573 "unifunc := [\n  [ x ->
+ -x,        \"-ad1\",      x -> true], \n  [ x -> sqrt(x),   \"sqrt(ad
+1)\", x -> evalb(x> 0)], \n  [ x -> sin(x),    \"sin(ad1)\",  x -> eva
+lf( abs(x) < 100*Pi)], \n  [ x -> cos(x),    \"cos(ad1)\",  x -> evalf
+( abs(x) < 100*Pi)],\n  [ x -> tan(x),    \"tan(ad1)\",  x -> evalf( a
+bs(x) < 100*Pi)],\n  [ x -> exp(x),    \"exp(ad1)\",  x -> (x < 200) ]
+,\n  [ x -> arcsin(x), \"asin(ad1)\", x -> evalb(abs(x) < 1)],\n  [ x \+
+-> arccos(x), \"acos(ad1)\", x -> evalb(abs(x) < 1)],\n  [ x -> arctan
+(x), \"atan(ad1)\", x -> true],\n  [ x -> ln(x),     \"log(ad1)\",  x \+
+-> evalb( x > 0)]\n]:\n" }}{PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "
+" {MPLTEXT 1 0 97 "#fprintf(\"testadreal_maple.cpp\", \"%s\", maketest
+s(bifunc, [1], [ fun1 ],[10^6, -1, 1e-6, 1,10])): " }}}{EXCHG {PARA 0 
+"> " 0 "" {MPLTEXT 1 0 101 "#fprintf(\"testadreal_maple.cpp\", \"%s\",
+ maketests(unifunc, [1], [ fun1 ],[10^6, -1, 0, 1e-6, 1,10])): " }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 96 "fprintf(\"testadreal_maple.c
+pp\", \"%s\", maketests(bifunc, [3], [ fun3 ],[10^6, -1, 1e-6, 1,10]))
+: " }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 101 "#fprintf(\"testadrea
+l_maple.cpp\", \"%s\", maketests(unifunc, [3], [ fun3 ],[10^6, -1, 0, \+
+1e-6, 1,10])): " }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}
+{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 31 "fclose(\"testadreal_maple.cp
+p\");" }}}{EXCHG {PARA 11 "" 1 "" {TEXT -1 0 "" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "
+" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "
+" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> \+
+" 0 "" {MPLTEXT 1 0 0 "" }}}{EXCHG {PARA 0 "> " 0 "" {MPLTEXT 1 0 0 "
+" }}}}{MARK "1 0 0" 18 }{VIEWOPTS 1 1 0 1 1 1803 1 1 1 1 }
+{PAGENUMBERS 0 1 2 33 1 1 }

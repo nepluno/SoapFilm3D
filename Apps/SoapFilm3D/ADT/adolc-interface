@@ -1,0 +1,200 @@
+class adouble;
+class adub;
+class badouble;
+
+
+  badouble& operator >>= ( double& );                        /* Assignments */
+  badouble& operator <<= ( double );
+  badouble& operator = ( double );
+  badouble& operator = ( const badouble& );
+  badouble& operator = ( const adub& );
+
+  friend ADOLC_DLL_EXPORT std::ostream& operator << ( std::ostream&, const badouble& );  
+  friend ADOLC_DLL_EXPORT std::istream& operator >> ( std::istream&, const badouble& );
+
+  /*------------------------------------------------------------------------*/
+  badouble& operator += ( double );               /* Operation + Assignment */
+  badouble& operator += ( const badouble& );
+  badouble& operator -= ( double y );
+  badouble& operator -= ( const badouble& );
+  badouble& operator *= ( double );
+  badouble& operator *= ( const badouble& );
+  badouble& operator /= ( double );
+  badouble& operator /= ( const badouble& );
+
+/*--------------------------------------------------------------------------*/
+                                                    /* Comparison (friends) */
+  inline friend int operator != ( const badouble&, const badouble& );
+  inline friend int operator != ( double, const badouble& );
+	 friend int operator != ( const badouble&, double );
+  inline friend int operator == ( const badouble&, const badouble& );
+  inline friend int operator == ( double, const badouble& );
+         friend int operator == ( const badouble&, double );
+  inline friend int operator <= ( const badouble&, const badouble& );
+  inline friend int operator <= ( double, const badouble& );
+         friend int operator <= ( const badouble&, double );
+  inline friend int operator >= ( const badouble&, const badouble& );
+  inline friend int operator >= ( double, const badouble& );
+         friend int operator >= ( const badouble&, double );
+  inline friend int operator >  ( const badouble&, const badouble& );
+  inline friend int operator >  ( double, const badouble& );
+         friend int operator >  ( const badouble&, double );
+  inline friend int operator <  ( const badouble&, const badouble& );
+  inline friend int operator <  ( double, const badouble& );
+         friend int operator <  ( const badouble&, double );
+
+
+/*--------------------------------------------------------------------------*/
+                                                /* sign operators (friends) */
+         friend adub operator + ( const badouble& x ); 
+         friend adub operator - ( const badouble& x ); 
+
+/*--------------------------------------------------------------------------*/
+                                              /* binary operators (friends) */
+         friend  adub operator + ( const badouble&, const badouble& ); 
+         friend  adub operator + ( double, const badouble& ); 
+         friend  adub operator + ( const badouble&, double ); 
+         friend  adub operator - ( const badouble&, const badouble& ); 
+  inline friend  adub operator - ( const badouble&, double ); 
+         friend  adub operator - ( double, const badouble& ); 
+         friend  adub operator * ( const badouble&, const badouble& ); 
+         friend  adub operator * ( double, const badouble& ); 
+  inline friend  adub operator * ( const badouble&, double );
+  inline friend  adub operator / ( const badouble&, double );
+         friend  adub operator / ( const badouble&, const badouble& ); 
+         friend  adub operator / ( double, const badouble& ); 
+
+/*--------------------------------------------------------------------------*/
+                                               /* unary operators (friends) */
+         friend  adub exp  ( const badouble& ); 
+         friend  adub log  ( const badouble& ); 
+         friend  adub sqrt ( const badouble& );
+         friend  adub sin  ( const badouble& ); 
+         friend  adub cos  ( const badouble& );
+         friend  adub tan  ( const badouble& );
+         friend  adub asin ( const badouble& );
+         friend  adub acos ( const badouble& );
+         friend  adub atan ( const badouble& ); 
+
+/*--------------------------------------------------------------------------*/
+                                             /* special operators (friends) */
+         friend  adouble atan2 ( const badouble&, const badouble& ); 
+         friend  adub    pow   ( const badouble&, double );
+         friend  adouble pow   ( const badouble&, const badouble& );
+         friend  adouble pow   ( double, const badouble& );
+         friend  adub    log10 ( const badouble& );
+
+         /* User defined version of logarithm to test extend_quad macro */
+         friend  adouble myquad( const badouble& );
+
+/*--------------------------------------------------------------------------*/
+        /* Additional ANSI C standard Math functions Added by DWJ on 8/6/90 */
+         friend  adub sinh  ( const badouble& );
+         friend  adub cosh  ( const badouble& );
+         friend  adub tanh  ( const badouble& );
+         friend  adub asinh ( const badouble& );
+         friend  adub acosh ( const badouble& );
+         friend  adub atanh ( const badouble& );
+
+         friend  adub fabs  ( const badouble& );
+         friend  adub ceil  ( const badouble& );
+         friend  adub floor ( const badouble& );
+
+         friend  adub fmax ( const badouble&, const badouble& );
+         friend  adub fmax ( double, const badouble& );
+         friend  adub fmax ( const badouble&, double );
+         friend  adub fmin ( const badouble&, const badouble& );
+         friend  adub fmin ( double, const badouble& );
+         friend  adub fmin ( const badouble&, double );
+
+         friend  adub ldexp ( const badouble&, int );
+         friend  adub frexp ( const badouble&, int* );
+         friend  adub erf   ( const badouble& );
+
+********************************************************************************
+math.h functions
+
+ double atan (double);
+ double cos (double);
+ double sin (double);
+ double tan (double);
+ double acos (double);
+ double asin (double);
+ double atan2 (double, double);
+ double exp (double);
+ double log (double);
+ double pow (double, double);
+ double sqrt (double);
+
+
+ double sinh (double);
+ double cosh (double);
+ double tanh (double);
+ double log10 (double)
+
+ double fabs (double);
+ double ceil (double);
+ double floor (double);
+
+ double frexp (double, int *);
+ double ldexp (double, int);
+
+ double modf (double, double *);
+ double fmod (double, double);
+
+
+/* Non ANSI double precision functions.  */
+ double cbrt (double);
+
+ double asinh (double);
+
+
+ double nextafter (double, double);
+ double rint (double);
+ double scalbn (double, int);
+ double exp2 (double);
+ double scalbln (double, long int);
+ double tgamma (double);
+ double nearbyint (double);
+ long   lrint (double);
+ double round (double);
+ long   lround (double);
+ double trunc (double);
+ double remquo (double, double, int *);
+ double copysign (double, double);
+ double fdim (double, double);
+ double fmax (double, double);
+ double fmin (double, double);
+ double fma (double, double, double);
+ void   sincos (double, double *, double *);
+ double log1p (double);
+ double expm1 (double);
+ double acosh (double);
+ double atanh (double);
+ double remainder (double, double);
+ double gamma (double);
+ double gamma_r (double, int *);
+ double lgamma (double);
+ double lgamma_r (double, int *);
+ double erf (double);
+ double erfc (double);
+ double y0 (double);
+ double y1 (double);
+ double yn (int, double);
+ double j0 (double);
+ double j1 (double);
+ double jn (int, double);
+ double log2(x) (double)
+ double hypot (double, double);
+ double cabs();
+ double drem (double, double);
+
+
+
+ double infinity (void);
+ double nan (const char *);
+ int	isnan (double);
+ int    isinf (double);
+ int    finite (double);
+ double copysign (double, double);
+ int    ilogb (double);

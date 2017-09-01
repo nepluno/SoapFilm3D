@@ -1,0 +1,33 @@
+scene			sheet
+time-step		0.001
+simulation-time		10.0
+implicit-integration	0
+smoothing-coef		1
+damping-coef		1
+sigma				1.0
+bending				150.0
+stretching			5000.0
+gravity				9.8
+radius				0.003
+
+output-png			1
+output-png-every-n-frames	5
+output-mesh			0
+output-mesh-every-n-frames	0
+
+remeshing-resolution	0.25
+remeshing-iterations	2
+    
+lostopos-collision-epsilon-fraction 1e-4
+lostopos-merge-proximity-epsilon-fraction 0.1
+lostopos-perform-smoothing 0
+lostopos-max-volume-change-fraction 1e-2
+lostopos-min-triangle-angle 3
+lostopos-max-triangle-angle 177
+lostopos-large-triangle-angle-to-split 160
+lostopos-min-triangle-area-fraction 0.02
+lostopos-t1-transition-enabled 1
+lostopos-t1-pull-apart-distance-fraction 0.1
+lostopos-smooth-subdivision 0
+
+mesh-size-n		2

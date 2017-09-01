@@ -1,0 +1,10 @@
+make maple generation of testadreal work for Visual C++ 
+(currently it does not like some of the big constants and a long
+single function -- need to split)
+do testing for mat3t -- currently not tested much
+rename cvec3 to vec3 ?
+
+
+
+
+  

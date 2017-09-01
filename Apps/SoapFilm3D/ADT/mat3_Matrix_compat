@@ -1,0 +1,91 @@
+comparing Mat3T class with Matrix 
+
+/*
+
+  Mat3T()
+  Mat3T(F m00, F m01, F m02,
+	      F m10, F m11, F m12,
+	  F m20, F m21, F m22,) 
+  Mat3T(const Mat3T& mat)
+
+  operator F*() 
+  operator const F*() const 
+  explicit Mat3T(F* m ) 
+
+  F operator()(int i, int j) 
+  F& operator()(int i, int j)
+  CVec3T<F> col(int i)
+  CVec3T<F> row(int i)
+  Mat3T& operator=(const Mat3T& mat) 
+
+
+  Mat3T&  setIdentity()
+  static Mat3T Identity()
+  Mat3T& setTranslation( const CVec3T<F>& trans ) 
+  static Mat3T Translation( const CVec3T<F>& trans )
+  Mat3T& setScale( const CVec3T<F>& scale ) 
+  static Mat3T Scale( const CVec3T<F>& scale )
+  Mat3T& setRotation(F a,const CVec3T<F>& v)
+  static Mat3T Rotation( F a,const CVec3T<F>& v)
+  bool setInverse(const Mat3T& M) 
+  Mat3T inverse() 
+  Mat3T& setTranspose(const Mat3T& M )  
+  Mat3T transpose()
+
+  Mat3T operator* (const Mat3T& M2)
+  Mat3T operator+ (const Mat3T& M2)
+  Mat3T operator- (const Mat3T& M2)
+  Mat3T operator* (F s)
+  Mat3T<F> operator*(F s, const Mat3T<F>& M) 
+
+  CVec3T<F> operator* (const CVec3T<F>& v)
+
+  F frobnorm() 
+
+  template <class F> inline ostream& operator<< ( ostream& os, const Mat3T<F>& M )
+*/
+
+/*
+
+  Matrix( void ) {}
+  Matrix( Scalar diagonalValue ); 
+
+  void SetFromArray(const Real[9]); 
+  void FillRowMajor(  Real A[3*3] ) const;
+
+  Row& operator[]( int i )
+  const Row& operator[]( int i ) const 
+
+
+  bool isSymmetric( void ) const;
+
+  Matrix operator- ( void ) const;
+  Matrix operator- ( const Matrix& B ) const;
+  Matrix operator+ ( const Matrix& B ) const
+  Matrix operator* ( const Matrix& B ) const;
+  friend Matrix operator* ( const Real& a, const Matrix& B ) 
+
+  Vector operator* ( const Vector& x, const Matrix& B );
+
+  Matrix& operator+= ( const Matrix& B );
+  Matrix& operator*= ( Real x );
+
+
+  void SetFromTranspose( const Matrix& transpose );
+  void Transpose( void );
+
+  Matrix OuterProduct( const Vector& x, const Vector& y );
+  Matrix SymOuterProduct( const Vector& x, const Vector& y );
+  std::ostream& operator<< ( std::ostream& os, const Matrix& A );
+
+
+  void ClearOffDiagonalEntries( void )
+  void Clear() 
+
+  static const Matrix Zero;
+  static const Matrix Identity;
+
+
+*/
+
+
