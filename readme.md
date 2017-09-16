@@ -2,7 +2,7 @@
 
 SoapFilm3D is an open source project for the physical simulation of soap films and bubbles. It is cross-platform (Mac OS X, Linux, Windows, and more), and licensed under Clear BSD License for academic and non-commercial use (other licenses may be obtained by contacting the faculty of the Columbia Computer Graphics Group or a Columbia University licensing officer).
 
-It is the test program accompanying Da, Fang, et al. "Double bubbles sans toil and trouble: discrete circulation-preserving vortex sheets for soap films and foams." ACM Transactions on Graphics (TOG) 34.4 (2015): 149., including the multimaterial mesh-based surface tracking library LosTopo. 
+It is the test program accompanying Da, Fang, et al. "Double bubbles sans toil and trouble: discrete circulation-preserving vortex sheets for soap films and foams." ACM Transactions on Graphics (TOG) 34.4 (2015): 149. (http://www.cs.columbia.edu/cg/doublebubbles/), including the multimaterial mesh-based surface tracking library LosTopo. 
 
 This program is built by standard procedures using CMAKE (http://www.cmake.org).
 

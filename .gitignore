@@ -4,6 +4,5 @@ build*/*
 pngs/*
 *.png
 *.bin
-log*.*
 .DS_Store
 *.off
