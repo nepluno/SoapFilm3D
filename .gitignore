@@ -2,7 +2,6 @@
 build*/*
 *.mat
 pngs/*
-*.png
 *.bin
 .DS_Store
 *.off

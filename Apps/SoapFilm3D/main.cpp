@@ -108,6 +108,8 @@ void idle()
     if (g_sc.run || g_sc.step)
     {
         g_sc.step = false;
+        if(g_sim.time() == 0.0)
+            g_sim.stepOutput(g_sc.headless);
         g_sim.step();
         std::cout << "Finished step: T = " << g_sim.time() << std::endl;
         g_sim.stepOutput(g_sc.headless);
@@ -291,7 +293,7 @@ int main(int argc, char * argv[])
     
     g_sc.render_mode = Sim::RM_TRANSPARENT;
     
-    g_sc.selection_mode = Sim::SM_VERTEX | Sim::SM_EDGE | Sim::SM_FACE;
+    g_sc.selection_mode = 0;//Sim::SM_VERTEX | Sim::SM_EDGE | Sim::SM_FACE;
     
     g_sc.headless = (argc > 2 && strcmp(argv[2], "headless") == 0);
 
@@ -299,7 +301,7 @@ int main(int argc, char * argv[])
     {
         // glut setup
         glutInit(&argc, argv);
-        glutInitDisplayString("rgba stencil double samples=8 hidpi");
+        glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_MULTISAMPLE | GLUT_DEPTH);
         glutInitWindowPosition(0, 0);
         glutInitWindowSize(g_sc.win_w, g_sc.win_h);
         glutCreateWindow("Soap3D");
@@ -312,6 +314,8 @@ int main(int argc, char * argv[])
         glutDisplayFunc(display);
         glutReshapeFunc(reshape);
         
+        glEnable(GL_MULTISAMPLE_ARB);
+        glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
         glEnable(GL_LINE_SMOOTH);
         glEnable(GL_POLYGON_SMOOTH);
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);

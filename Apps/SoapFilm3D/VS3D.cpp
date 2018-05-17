@@ -625,47 +625,49 @@ double VS3D::step(double dt)
     assert(obv.size() == ob.size());    // assume the open boundary has simple topology
     size_t nob = ob.size();
     
-    std::vector<Vec3d> obvn(nob);    // open boundary vertex normals
-    for (size_t i = 0; i < nob; i++)
-    {
-        Vec3d n(0, 0, 0);
-        for (size_t j = 0; j < nob; j++)
-            if (mesh().m_edges[ob[j]][0] == obv[i] || mesh().m_edges[ob[j]][1] == obv[i])
-                n += m_obefn[j];
-        obvn[i] = n.normalized();
-    }
-    
-    // solve for the obef vorticities such that the open boundary does not move
-    MatXd obA = MatXd::Zero(nob, nob);
-    for (size_t i = 0; i < nob; i++)
-    {
-        Vec3d x = pos(obv[i]);
+    if(nob > 0) {
         
-        for (size_t j = 0; j < nob; j++)
+        std::vector<Vec3d> obvn(nob);    // open boundary vertex normals
+        for (size_t i = 0; i < nob; i++)
         {
-            Vec3d xp = m_obefc[j];
-            
-            Vec3d dx = x - xp;
-            double dxn = sqrt(dx.squaredNorm() + m_delta * m_delta);
-
-            obA(i, j) = -(skewSymmetric(dx) * m_obefe[j]).dot(obvn[i]) / (dxn * dxn * dxn);
+            Vec3d n(0, 0, 0);
+            for (size_t j = 0; j < nob; j++)
+                if (mesh().m_edges[ob[j]][0] == obv[i] || mesh().m_edges[ob[j]][1] == obv[i])
+                    n += m_obefn[j];
+            obvn[i] = n.normalized();
         }
+        
+        // solve for the obef vorticities such that the open boundary does not move
+        MatXd obA = MatXd::Zero(nob, nob);
+        for (size_t i = 0; i < nob; i++)
+        {
+            Vec3d x = pos(obv[i]);
+            
+            for (size_t j = 0; j < nob; j++)
+            {
+                Vec3d xp = m_obefc[j];
+                
+                Vec3d dx = x - xp;
+                double dxn = sqrt(dx.squaredNorm() + m_delta * m_delta);
+                
+                obA(i, j) = -(skewSymmetric(dx) * m_obefe[j]).dot(obvn[i]) / (dxn * dxn * dxn);
+            }
+        }
+        
+        obA *= dt / (4 * M_PI);
+        
+        VecXd obrhs = VecXd::Zero(nob);
+        for (size_t i = 0; i < nob; i++)
+            obrhs[i] = (m_constrained_positions[constrained_vertices_map[obv[i]]] - vc(surfTrack()->pm_newpositions[obv[i]])).dot(obvn[i]);
+        
+        //    VecXd obefv = obA.partialPivLu().solve(obrhs);
+        double oblambda = 0.1;
+        VecXd obefv = (obA.transpose() * obA + oblambda * oblambda * MatXd::Identity(nob, nob)).partialPivLu().solve(obA.transpose() * obrhs);   // regularized solve to avoid blowing up in presence of near-dependent constraints
+        
+        m_obefv.resize(nob, 0);
+        for (size_t i = 0; i < nob; i++)
+            m_obefv[i] = obefv[i];
     }
-    
-    obA *= dt / (4 * M_PI);
-    
-    VecXd obrhs = VecXd::Zero(nob);
-    for (size_t i = 0; i < nob; i++)
-        obrhs[i] = (m_constrained_positions[constrained_vertices_map[obv[i]]] - vc(surfTrack()->pm_newpositions[obv[i]])).dot(obvn[i]);
-    
-//    VecXd obefv = obA.partialPivLu().solve(obrhs);
-    double oblambda = 0.1;
-    VecXd obefv = (obA.transpose() * obA + oblambda * oblambda * MatXd::Identity(nob, nob)).partialPivLu().solve(obA.transpose() * obrhs);   // regularized solve to avoid blowing up in presence of near-dependent constraints
-
-    m_obefv.resize(nob, 0);
-    for (size_t i = 0; i < nob; i++)
-        m_obefv[i] = obefv[i];
-
     // following the open boundary solve, recompute the velocities
     VecXd newv = BiotSavart(*this, VecXd::Zero(mesh().nv() * 3));
     for (size_t i = 0; i < mesh().nv(); i++)
@@ -716,106 +718,108 @@ double VS3D::step(double dt)
     }
     
     size_t nc = relevant_constrained_vertices.size();
-    std::vector<Vec2i> constrained_vertex_region_pair(nc);  // one region pair for each constrained vertex
-    std::vector<Vec3d> constrained_vertex_normal(nc);       // surface normals
-    for (size_t i = 0; i < nc; i++)
-    {
-        size_t cv = m_constrained_vertices[relevant_constrained_vertices[i]];
-        LosTopos::Vec2i l(-1, -1);
-        for (size_t j = 0; j < mesh().m_vertex_to_triangle_map[cv].size(); j++)
-        {
-            LosTopos::Vec3st t = mesh().get_triangle(mesh().m_vertex_to_triangle_map[cv][j]);
-            if (m_st->vertex_is_any_solid(t[0]) && m_st->vertex_is_any_solid(t[1]) && m_st->vertex_is_any_solid(t[2]))
-                continue;
-            l = mesh().get_triangle_label(mesh().m_vertex_to_triangle_map[cv][j]);   // grab any triangle on the vertex, because it's manifold.
-        }
-        assert(l[0] >= 0 && l[1] >= 0);    // this vertex can't be incident to no unconstrained triangle.
-        constrained_vertex_region_pair[i] = (l[0] < l[1] ? Vec2i(l[0], l[1]) : Vec2i(l[1], l[0]));
-        
-        Vec3d normal(0, 0, 0);
-        for (size_t j = 0; j < mesh().m_vertex_to_triangle_map[cv].size(); j++)
-        {
-            LosTopos::Vec3st t = mesh().get_triangle(mesh().m_vertex_to_triangle_map[cv][j]);
-            if (m_st->vertex_is_any_solid(t[0]) && m_st->vertex_is_any_solid(t[1]) && m_st->vertex_is_any_solid(t[2]))
-                continue;            
-            LosTopos::Vec2i ll = mesh().get_triangle_label(mesh().m_vertex_to_triangle_map[cv][j]);
-            assert((l[0] == ll[0] && l[1] == ll[1]) || (l[0] == ll[1] && l[1] == ll[0]));   // assume constrained vertices are all manifold for now
-            Vec3d x0 = pos(t[0]);
-            Vec3d x1 = pos(t[1]);
-            Vec3d x2 = pos(t[2]);
-            if (!(m_st->vertex_is_any_solid(t[0]) && m_st->vertex_is_any_solid(t[1]) && m_st->vertex_is_any_solid(t[2])))
-                normal += (x1 - x0).cross(x2 - x0) * (l[0] == ll[0] ? 1 : -1);
-        }
-        assert(normal.norm() != 0);
-        constrained_vertex_normal[i] = normal.normalized();
-    }
     
-    MatXd A = MatXd::Zero(nc, nc);   // the transformation from circulations (the additional amount to be added to existing circulations to enforce constraints) on constrained vertices to normal displacements (additional amount as well) on constrained vertices
-    for (size_t ii = 0; ii < nc; ii++)
-    {
-        // Biot-Savart for constrained vertex i
-        size_t i = m_constrained_vertices[relevant_constrained_vertices[ii]];
-        
-        Vec3d v(0, 0, 0);
-        Vec3d x = pos(i);
-        
-        for (size_t jj = 0; jj < nc; jj++)
+    if(nc > 0) {
+        std::vector<Vec2i> constrained_vertex_region_pair(nc);  // one region pair for each constrained vertex
+        std::vector<Vec3d> constrained_vertex_normal(nc);       // surface normals
+        for (size_t i = 0; i < nc; i++)
         {
-            size_t j = m_constrained_vertices[relevant_constrained_vertices[jj]];
-            for (size_t k = 0; k < mesh().m_vertex_to_triangle_map[j].size(); k++)
+            size_t cv = m_constrained_vertices[relevant_constrained_vertices[i]];
+            LosTopos::Vec2i l(-1, -1);
+            for (size_t j = 0; j < mesh().m_vertex_to_triangle_map[cv].size(); j++)
             {
-                LosTopos::Vec3st t = mesh().get_triangle(mesh().m_vertex_to_triangle_map[j][k]);
+                LosTopos::Vec3st t = mesh().get_triangle(mesh().m_vertex_to_triangle_map[cv][j]);
                 if (m_st->vertex_is_any_solid(t[0]) && m_st->vertex_is_any_solid(t[1]) && m_st->vertex_is_any_solid(t[2]))
-                    continue;   // all-solid faces don't contribute vorticity.
-                
-                LosTopos::Vec2i l = mesh().get_triangle_label(mesh().m_vertex_to_triangle_map[j][k]);
-                Vec3d xp = (pos(t[0]) + pos(t[1]) + pos(t[2])) / 3;
-                
-                Vec3d e01 = pos(t[1]) - pos(t[0]);
-                Vec3d e12 = pos(t[2]) - pos(t[1]);
-                Vec3d e20 = pos(t[0]) - pos(t[2]);
-
-                Vec3d e_opposite;
-                if      (t[0] == j) e_opposite = e12;
-                else if (t[1] == j) e_opposite = e20;
-                else if (t[2] == j) e_opposite = e01;
-                assert(t[0] == j || t[1] == j || t[2] == j);
-
-                Vec3d gamma =  -(e01 * (*m_Gamma)[t[2]].get(l) +
-                                 e12 * (*m_Gamma)[t[0]].get(l) +
-                                 e20 * (*m_Gamma)[t[1]].get(l));
-
-                Vec3d dx = x - xp;
-//                double dxn = dx.norm();
-                double dxn = sqrt(dx.squaredNorm() + m_delta * m_delta);
-
-                v += gamma.cross(dx) / (dxn * dxn * dxn);
-//                v += gamma.cross(dx) / (dxn * dxn * dxn) * (1 - exp(-dxn / m_delta));
-
-                A(ii, jj) += (l[0] < l[1] ? 1 : -1) * (skewSymmetric(dx) * e_opposite / (dxn * dxn * dxn)).dot(constrained_vertex_normal[ii]);
+                    continue;
+                l = mesh().get_triangle_label(mesh().m_vertex_to_triangle_map[cv][j]);   // grab any triangle on the vertex, because it's manifold.
+            }
+            assert(l[0] >= 0 && l[1] >= 0);    // this vertex can't be incident to no unconstrained triangle.
+            constrained_vertex_region_pair[i] = (l[0] < l[1] ? Vec2i(l[0], l[1]) : Vec2i(l[1], l[0]));
+            
+            Vec3d normal(0, 0, 0);
+            for (size_t j = 0; j < mesh().m_vertex_to_triangle_map[cv].size(); j++)
+            {
+                LosTopos::Vec3st t = mesh().get_triangle(mesh().m_vertex_to_triangle_map[cv][j]);
+                if (m_st->vertex_is_any_solid(t[0]) && m_st->vertex_is_any_solid(t[1]) && m_st->vertex_is_any_solid(t[2]))
+                    continue;
+                LosTopos::Vec2i ll = mesh().get_triangle_label(mesh().m_vertex_to_triangle_map[cv][j]);
+                assert((l[0] == ll[0] && l[1] == ll[1]) || (l[0] == ll[1] && l[1] == ll[0]));   // assume constrained vertices are all manifold for now
+                Vec3d x0 = pos(t[0]);
+                Vec3d x1 = pos(t[1]);
+                Vec3d x2 = pos(t[2]);
+                if (!(m_st->vertex_is_any_solid(t[0]) && m_st->vertex_is_any_solid(t[1]) && m_st->vertex_is_any_solid(t[2])))
+                    normal += (x1 - x0).cross(x2 - x0) * (l[0] == ll[0] ? 1 : -1);
+            }
+            assert(normal.norm() != 0);
+            constrained_vertex_normal[i] = normal.normalized();
+        }
+        
+        MatXd A = MatXd::Zero(nc, nc);   // the transformation from circulations (the additional amount to be added to existing circulations to enforce constraints) on constrained vertices to normal displacements (additional amount as well) on constrained vertices
+        for (size_t ii = 0; ii < nc; ii++)
+        {
+            // Biot-Savart for constrained vertex i
+            size_t i = m_constrained_vertices[relevant_constrained_vertices[ii]];
+            
+            Vec3d v(0, 0, 0);
+            Vec3d x = pos(i);
+            
+            for (size_t jj = 0; jj < nc; jj++)
+            {
+                size_t j = m_constrained_vertices[relevant_constrained_vertices[jj]];
+                for (size_t k = 0; k < mesh().m_vertex_to_triangle_map[j].size(); k++)
+                {
+                    LosTopos::Vec3st t = mesh().get_triangle(mesh().m_vertex_to_triangle_map[j][k]);
+                    if (m_st->vertex_is_any_solid(t[0]) && m_st->vertex_is_any_solid(t[1]) && m_st->vertex_is_any_solid(t[2]))
+                        continue;   // all-solid faces don't contribute vorticity.
+                    
+                    LosTopos::Vec2i l = mesh().get_triangle_label(mesh().m_vertex_to_triangle_map[j][k]);
+                    Vec3d xp = (pos(t[0]) + pos(t[1]) + pos(t[2])) / 3;
+                    
+                    Vec3d e01 = pos(t[1]) - pos(t[0]);
+                    Vec3d e12 = pos(t[2]) - pos(t[1]);
+                    Vec3d e20 = pos(t[0]) - pos(t[2]);
+                    
+                    Vec3d e_opposite;
+                    if      (t[0] == j) e_opposite = e12;
+                    else if (t[1] == j) e_opposite = e20;
+                    else if (t[2] == j) e_opposite = e01;
+                    assert(t[0] == j || t[1] == j || t[2] == j);
+                    
+                    Vec3d gamma =  -(e01 * (*m_Gamma)[t[2]].get(l) +
+                                     e12 * (*m_Gamma)[t[0]].get(l) +
+                                     e20 * (*m_Gamma)[t[1]].get(l));
+                    
+                    Vec3d dx = x - xp;
+                    //                double dxn = dx.norm();
+                    double dxn = sqrt(dx.squaredNorm() + m_delta * m_delta);
+                    
+                    v += gamma.cross(dx) / (dxn * dxn * dxn);
+                    //                v += gamma.cross(dx) / (dxn * dxn * dxn) * (1 - exp(-dxn / m_delta));
+                    
+                    A(ii, jj) += (l[0] < l[1] ? 1 : -1) * (skewSymmetric(dx) * e_opposite / (dxn * dxn * dxn)).dot(constrained_vertex_normal[ii]);
+                }
             }
         }
+        A *= dt / (4 * M_PI);
+        
+        VecXd rhs = VecXd::Zero(nc);    // rhs = the additional normal displacements needed on constrained vertices to correct the current displacement to satisfiy the constraints (in the normal direction)
+        for (size_t ii = 0; ii < nc; ii++)
+        {
+            size_t i = m_constrained_vertices[relevant_constrained_vertices[ii]];
+            rhs(ii) = (m_constrained_positions[relevant_constrained_vertices[ii]] - vc(m_st->pm_newpositions[i])).dot(constrained_vertex_normal[ii]);
+        }
+        
+        //    VecXd result = A.partialPivLu().solve(rhs); // the solution is the additional circulation needed to be added to the constrained vertices
+        double lambda = (m_st->m_min_edge_length + m_st->m_max_edge_length) / 2 * 0.1;
+        VecXd result = (A.transpose() * A + lambda * lambda * MatXd::Identity(nc, nc)).partialPivLu().solve(A.transpose() * rhs);   // regularized solve to avoid blowing up in presence of near-dependent constraints
+        
+        for (size_t ii = 0; ii < nc; ii++)
+        {
+            size_t i = m_constrained_vertices[relevant_constrained_vertices[ii]];
+            Vec2i rp = constrained_vertex_region_pair[ii];
+            (*m_Gamma)[i].set(rp, (*m_Gamma)[i].get(rp) + result[ii]);
+        }
     }
-    A *= dt / (4 * M_PI);
-    
-    VecXd rhs = VecXd::Zero(nc);    // rhs = the additional normal displacements needed on constrained vertices to correct the current displacement to satisfiy the constraints (in the normal direction)
-    for (size_t ii = 0; ii < nc; ii++)
-    {
-        size_t i = m_constrained_vertices[relevant_constrained_vertices[ii]];
-        rhs(ii) = (m_constrained_positions[relevant_constrained_vertices[ii]] - vc(m_st->pm_newpositions[i])).dot(constrained_vertex_normal[ii]);
-    }
-    
-//    VecXd result = A.partialPivLu().solve(rhs); // the solution is the additional circulation needed to be added to the constrained vertices
-    double lambda = (m_st->m_min_edge_length + m_st->m_max_edge_length) / 2 * 0.1;
-    VecXd result = (A.transpose() * A + lambda * lambda * MatXd::Identity(nc, nc)).partialPivLu().solve(A.transpose() * rhs);   // regularized solve to avoid blowing up in presence of near-dependent constraints    
-    
-    for (size_t ii = 0; ii < nc; ii++)
-    {
-        size_t i = m_constrained_vertices[relevant_constrained_vertices[ii]];
-        Vec2i rp = constrained_vertex_region_pair[ii];
-        (*m_Gamma)[i].set(rp, (*m_Gamma)[i].get(rp) + result[ii]);
-    }
-
     // recompute the velocity after the constraint projection
     newv = BiotSavart(*this, VecXd::Zero(mesh().nv() * 3));
     for (size_t i = 0; i < mesh().nv(); i++)

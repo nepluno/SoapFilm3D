@@ -187,7 +187,8 @@ namespace
             return BiotSavart_naive(vs, dx);
     }
 
-
+//#define FANGS_VERSION
+//#define FANGS_PATCHED
 
 void VS3D::step_explicit(double dt)
 {
@@ -328,8 +329,13 @@ void VS3D::step_explicit(double dt)
             
             Mat3d second_fundamental_form = Mat3d::Zero();
             int counter = 0;
+
+#ifdef FANGS_VERSION
+            double vertex_area = 0;
+            double triple_junction_length_sum = 0;
+#else
             double vertex_area = avg_vertex_areas[i];
-//            double triple_junction_length_sum = 0;
+#endif
             for (size_t j = 0; j < mesh().m_vertex_to_edge_map[i].size(); j++)
             {
                 size_t e = mesh().m_vertex_to_edge_map[i][j];
@@ -350,12 +356,14 @@ void VS3D::step_explicit(double dt)
                     second_fundamental_form += et * et.transpose() * curvature[e][region];
                     mean_curvature += curvature[e][region];
                     counter++;
-/*                    if (mesh().m_edge_to_triangle_map[e].size() > 2)
-                        triple_junction_length_sum += (pos(mesh().m_edges[e][1]) - pos(mesh().m_edges[e][0])).norm();*/
+#ifdef FANGS_VERSION
+                    if (mesh().m_edge_to_triangle_map[e].size() > 2)
+                        triple_junction_length_sum += (pos(mesh().m_edges[e][1]) - pos(mesh().m_edges[e][0])).norm();
+#endif
                 }
             }
-            
- /*           for (size_t j = 0; j < mesh().m_vertex_to_triangle_map[i].size(); j++)
+#ifdef FANGS_VERSION
+            for (size_t j = 0; j < mesh().m_vertex_to_triangle_map[i].size(); j++)
             {
                 const LosTopos::Vec3st & t = mesh().m_tris[mesh().m_vertex_to_triangle_map[i][j]];
                 const LosTopos::Vec2i & l = mesh().get_triangle_label(mesh().m_vertex_to_triangle_map[i][j]);
@@ -367,16 +375,20 @@ void VS3D::step_explicit(double dt)
                     double area = (x1 - x0).cross(x2 - x0).norm() / 2;
                     vertex_area += area / 3;
                 }
-            }*/
-            
+            }
+#endif
 //            if (counter == 0)
 //                mean_curvature = 0;
 //            else
 ////                mean_curvature = second_fundamental_form.trace() / counter / 3;
 //                mean_curvature /= counter;
             
-//            if (triple_junction_length_sum > 0) // this means the vertex is a triple junction vertex; the vertex domain should then be smaller.
-//                vertex_area = triple_junction_length_sum * m_delta * 1.0;
+#ifdef FANGS_VERSION
+#ifdef FANGS_PATCHED
+            if (triple_junction_length_sum > 0) // this means the vertex is a triple junction vertex; the vertex domain should then be smaller.
+                vertex_area = triple_junction_length_sum * m_delta * 1.0;
+#endif
+#endif
             
             if (vertex_area == 0)
                 mean_curvature = 0;

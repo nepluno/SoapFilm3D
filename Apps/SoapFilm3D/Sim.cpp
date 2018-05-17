@@ -81,7 +81,7 @@ bool Sim::init(const std::string & option_file, bool save_outputs, bool headless
     
     Options::addBooleanOption("output-png", true);
     Options::addIntegerOption("output-png-every-n-frames", 0);     // 0 means synching with simulation frame rate (equivalent to 1).
-    Options::addBooleanOption("output-mesh", true);
+    Options::addBooleanOption("output-mesh", false);
     Options::addIntegerOption("output-mesh-every-n-frames", 0);    // 0 means synching with simulation frame rate (equivalent to 1).
     Options::addBooleanOption("output-obj", false);
     Options::addIntegerOption("output-obj-every-n-frames", 0);     // 0 means synching with simulation frame rate (equivalent to 1).
@@ -108,7 +108,7 @@ bool Sim::init(const std::string & option_file, bool save_outputs, bool headless
     Options::addDoubleOption("foam-burst-interval", 20.0);
     Options::addDoubleOption("foam-burst-start", 10.0);
     
-    Options::parseOptionFile(option_file, m_verbose);
+    Options::parseOptionFile(option_file, true);
     
 
     // select the scene
@@ -283,7 +283,8 @@ void Sim::stepOutput(bool headless)
         }
         
         int meshfd = Options::intValue("output-mesh-every-n-frames");
-        if ((meshfd == 0 || frameid % meshfd == 0) && Options::boolValue("output-mesh"))
+        bool outputmesh = Options::boolValue("output-mesh");
+        if ((meshfd == 0 || frameid % meshfd == 0) && outputmesh)
         {
             std::stringstream mesh_ss;
             mesh_ss << m_output_directory << "/mesh" << std::setfill('0') << std::setw(6) << frameid << ".rec";
@@ -455,8 +456,8 @@ void Sim::render(RenderMode rm, const Vec2d & mousepos, int selection_mask)
         }
     }
     
-    assert(mind >= 0);
-    assert(m_nearest_vertex >= 0 || m_nearest_edge >= 0 || m_nearest_face >= 0);
+//    assert(mind >= 0);
+//    assert(m_nearest_vertex >= 0 || m_nearest_edge >= 0 || m_nearest_face >= 0);
 
     
 //    Colormap cm(Colormap::MATLAB_JET, 256);
