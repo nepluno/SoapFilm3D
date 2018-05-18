@@ -37,11 +37,8 @@ if (USE_PNG)
 endif (USE_PNG)
 
 find_package (LAPACK REQUIRED)
-if (LAPACK_FOUND)
 add_definitions (-DHAVE_LAPACK)
-include_directories (${LAPACK_INCLUDE_DIR})
 set (DEFAULT_LIBRARIES ${DEFAULT_LIBRARIES} ${LAPACK_LIBRARIES})
-endif (LAPACK_FOUND)
 
 find_package (BLAS REQUIRED)
 add_definitions (-DHAVE_BLAS)
