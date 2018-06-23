@@ -2,13 +2,14 @@
 #include <sstream>
 
 #ifdef __APPLE__
+#include <GL/glew.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #include <GLUT/glut.h>
 #else
 #ifdef WIN32
 #include <Windows.h>
-#include <glew.h>
+#include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
@@ -311,7 +312,7 @@ int main(int argc, char * argv[])
         glutCreateWindow("Soap3D");
 
 		if (GLEW_OK != glewInit()) {
-			throw std::exception("Failed to initialize GLEW\n");
+			throw std::runtime_error("Failed to initialize GLEW\n");
 		}
         
         glutKeyboardFunc(keyboard);
