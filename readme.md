@@ -10,13 +10,13 @@ Dependencies
 --------------------
 The following external libraries are required:
 
-Eigen (http://eigen.tuxfamily.org)
-OpenGL and GLUT (http://www.opengl.org/resources/libraries/glut/)
-LAPACK (http://www.netlib.org/lapack/)
-BLAS (http://www.netlib.org/blas/)
-libPNG (https://libpng.sourceforge.io/)
-zLib (https://www.zlib.net/)
-GLEW (http://glew.sourceforge.net/)
+* Eigen (http://eigen.tuxfamily.org)
+* OpenGL and GLUT (http://www.opengl.org/resources/libraries/glut/)
+* LAPACK (http://www.netlib.org/lapack/)
+* BLAS (http://www.netlib.org/blas/)
+* libPNG (https://libpng.sourceforge.io/)
+* zLib (https://www.zlib.net/)
+* GLEW (http://glew.sourceforge.net/)
 
 On Mac OS X or Linux-based systems, most of the dependencies are either included, or can be easily installed with Homebrew (https://brew.sh) or the APT package handling utility. 
 
@@ -35,7 +35,7 @@ To compile SoapFilm3D, you'll need CMake on Mac OS X or Linux.
 On Windows:
 
 1. open CMake-GUI, enter the correct directory for source code and build. Then click *Configure*, choose your installed version of the Microsoft Visual Studio.
-2. after configuration you may find several libraries not found (with notifications of errors), check the *Advanced* box and *specify those missing header path and libraries manually*. For example, if Eigen is missing, then please specify the EIGEN3_INCLUDE_DIR to the path of directory we provided. For the ones we have not provided, you need to download and compile them before compiling libWetCloth, and then specify the missing directories to the path containing your headers or compiled libraries. Please make sure you have picked the libraries corresponding to the architecture you have selected (say, 32-bit libraries for x86, and 64-bit libraries for x64).
+2. after configuration you may find several libraries not found (with notifications of errors), check the *Advanced* box and *specify those missing header path and libraries manually*. For example, if Eigen is missing, then please specify the EIGEN3_INCLUDE_DIR to the path of directory we provided. For the ones we have not provided, you need to download and compile them, and then specify the missing directories to the path containing your headers or compiled libraries. Please make sure you have picked the libraries corresponding to the architecture you have selected (say, 32-bit libraries for x86, and 64-bit libraries for x64).
 3. click generate after fixing all missing variables to generate your Visual Studio solution.
 4. open the Visual Studio solution and compile the code.
 5. before running the demo, all the compiled dynamic linking libraries (DLLs) for your dependencies should be accessible from your PATH environment variable that can be changed in system settings, or you may simply copy them into your System32 (x64) or SysWOW64 (x86) directories.
