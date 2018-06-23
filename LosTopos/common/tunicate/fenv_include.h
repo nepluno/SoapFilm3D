@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-#pragma fenv_access(on)
+//#pragma fenv_access(on)
 
 
 //define the functions we need. I hate Microsoft! Just implement C99 already, c'mon.

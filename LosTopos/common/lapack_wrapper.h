@@ -9,8 +9,6 @@
 #include <iostream>
 #ifdef __APPLE__
 #include <Accelerate/Accelerate.h>
-#else
-#include <clapack.h>
 #endif
 
 using std::max;

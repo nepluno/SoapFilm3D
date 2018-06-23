@@ -9,6 +9,7 @@
 
 #include <commonoptions.h>
 #include <fstream>
+#include <algorithm>
 
 namespace LosTopos {
 

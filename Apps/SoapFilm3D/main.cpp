@@ -6,9 +6,13 @@
 #include <OpenGL/glu.h>
 #include <GLUT/glut.h>
 #else
+#ifdef WIN32
+#include <Windows.h>
+#include <glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
+#endif
 #endif
 
 #include "Sim.h"
@@ -305,6 +309,10 @@ int main(int argc, char * argv[])
         glutInitWindowPosition(0, 0);
         glutInitWindowSize(g_sc.win_w, g_sc.win_h);
         glutCreateWindow("Soap3D");
+
+		if (GLEW_OK != glewInit()) {
+			throw std::exception("Failed to initialize GLEW\n");
+		}
         
         glutKeyboardFunc(keyboard);
         glutMouseFunc(mouse);

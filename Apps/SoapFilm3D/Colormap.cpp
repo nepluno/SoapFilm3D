@@ -1,4 +1,5 @@
 #include "Colormap.h"
+#include <algorithm>
 
 Colormap::Colormap( const ColorScheme& color_scheme, const int& num_samples )
 : m_num_samples(num_samples)

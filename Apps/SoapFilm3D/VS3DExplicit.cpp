@@ -9,11 +9,13 @@
 #include "VS3D.h"
 #include "SimOptions.h"
 
+#ifndef WIN32
 #include "fmmtl/fmmtl/KernelMatrix.hpp"
 #include "fmmtl/kernel/BiotSpherical.hpp"
 #include "fmmtl/kernel/RMSpherical.hpp"
 #include "fmmtl/fmmtl/Direct.hpp"
 #include "fmmtl/fmmtl/util/Clock.hpp"
+#endif
 
 namespace
 {
@@ -93,7 +95,7 @@ namespace
         
         return vel;
     }
-
+#ifndef WIN32
     VecXd BiotSavart_fmmtl(VS3D & vs, const VecXd & dx)
     {
         // code adapted from FMMTL example test "error_biot.cpp"
@@ -178,12 +180,14 @@ namespace
         
         return vel;
     }
-
+#endif
     VecXd BiotSavart(VS3D & vs, const VecXd & dx)
     {
+#ifndef WIN32
         if (Options::boolValue("fmmtl"))
             return BiotSavart_fmmtl(vs, dx);
         else
+#endif
             return BiotSavart_naive(vs, dx);
     }
 

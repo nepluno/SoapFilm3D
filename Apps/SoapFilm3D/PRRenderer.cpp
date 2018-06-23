@@ -339,13 +339,12 @@ bool PRRenderer::load_cube_map_side(GLuint tex, GLenum side, const std::string &
     
     unsigned char * image_data = new unsigned char[w * h * 4];
     
-    png_bytep * row_pointers;
-    row_pointers = (png_bytep *)malloc(sizeof(png_bytep) * h);
+	std::vector<png_bytep> row_pointers(h, 0);
+
     for (int y = 0; y < h; y++)
         row_pointers[y] = (png_byte *)(image_data + rowbytes * (h - 1 - y));
     
-    png_read_image(png_ptr, row_pointers);
-    free(row_pointers);
+    png_read_image(png_ptr, &row_pointers[0]);
     
     fclose(fp);
     

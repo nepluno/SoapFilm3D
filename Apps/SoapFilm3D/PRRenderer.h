@@ -18,9 +18,15 @@
 #include <OpenGL/glu.h>
 #include <GLUT/glut.h>
 #else
+#ifdef WIN32
+#define NOMINMAX
+#include <Windows.h>
+#endif
+#include <glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
+
 #endif
 #include "Shader.h"
 

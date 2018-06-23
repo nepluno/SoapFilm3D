@@ -12,9 +12,21 @@
 
 #ifndef RenderingTank_Shader_h
 #define RenderingTank_Shader_h
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#include <GLUT/glut.h>
+#else
+#ifdef WIN32
+#define NOMINMAX
+#include <Windows.h>
+#endif
+#include <glew.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glut.h>
 
-#include "OpenGL/gl.h"
-#include "OpenGL/glu.h"
+#endif
 #include <string>
 #include <vector>
 #include <map>

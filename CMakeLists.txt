@@ -3,6 +3,8 @@ cmake_minimum_required (VERSION 3.1)
 project (SoapFilm3D)
 set (CMAKE_CXX_STANDARD 11)
 
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE Release CACHE STRING
     "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel."
@@ -37,11 +39,8 @@ if (USE_PNG)
 endif (USE_PNG)
 
 find_package (LAPACK REQUIRED)
-if (LAPACK_FOUND)
 add_definitions (-DHAVE_LAPACK)
-include_directories (${LAPACK_INCLUDE_DIR})
 set (DEFAULT_LIBRARIES ${DEFAULT_LIBRARIES} ${LAPACK_LIBRARIES})
-endif (LAPACK_FOUND)
 
 find_package (BLAS REQUIRED)
 add_definitions (-DHAVE_BLAS)

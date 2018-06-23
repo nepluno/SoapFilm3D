@@ -7,15 +7,19 @@
 
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 #include "Sim.h"
 #include "SimOptions.h"
 #include "MeshIO.h"
 #include <cmath>
 #include "eigenheaders.h"
-#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
+
+#ifdef WIN32
+#include <direct.h>
+#endif
+
 #include "YImage.h"
 #include "Colormap.h"
 #include "PRRenderer.h"
@@ -25,6 +29,11 @@
 #include <OpenGL/glu.h>
 #include <GLUT/glut.h>
 #else
+#ifdef WIN32
+#include <glew.h>
+#include <Windows.h>
+#endif
+
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
@@ -119,7 +128,11 @@ bool Sim::init(const std::string & option_file, bool save_outputs, bool headless
         std::stringstream output_dir_ss;
         output_dir_ss << "output_" << ::time(NULL);
         m_output_directory = output_dir_ss.str();
-        mkdir(m_output_directory.c_str(), 0755);
+#ifdef WIN32
+		_mkdir(m_output_directory.c_str());
+#else
+		mkdir(m_output_directory.c_str(), 0755);
+#endif
         std::cout << "Outputing to directory: " << m_output_directory << std::endl;
     }
     
