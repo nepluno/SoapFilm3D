@@ -1,6 +1,8 @@
 [![Double bubbles sans toil and trouble: discrete circulation-preserving vortex sheets for soap films and foams](http://www.cs.columbia.edu/cg/doublebubbles/title.jpg)](http://www.cs.columbia.edu/cg/doublebubbles/)
 
-SoapFilm3D is an open source project for the physical simulation of soap films and bubbles. It is licensed under Clear BSD License for academic and non-commercial use (other licenses may be obtained by contacting the faculty of the Columbia Computer Graphics Group or a Columbia University licensing officer).
+SoapFilm3D is an open source project for the physical simulation of soap films and bubbles. It is cross-platform (Mac OS X, Linux, Windows, and more), and licensed under the Mozilla Public License v. 2.0.
+
+We would like to hear from you if you appreciate this work.
 
 It is the test program accompanying Da, Fang, et al. "Double bubbles sans toil and trouble: discrete circulation-preserving vortex sheets for soap films and foams." ACM Transactions on Graphics (TOG) 34.4 (2015): 149. (http://www.cs.columbia.edu/cg/doublebubbles/), including the multimaterial mesh-based surface tracking library LosTopo. 
 
@@ -46,7 +48,7 @@ Run the Demo
 --------------------
 Running the executables without command line arguments will display usage
 information. All the data files for testing are located in the assets folder.
-Since FMMTL is not supported, running on Windows can be slower than expected.
+Since FMMTL is not supported on Windows, running can be slower than expected.
 
 Please run the code using the project folder that containing everything (assets, code, etc.) as the working directory. 
 
