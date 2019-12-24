@@ -4,7 +4,7 @@ SoapFilm3D is an open source project for the physical simulation of soap films a
 
 We would like to hear from you if you appreciate this work.
 
-It is the test program accompanying Da, Fang, et al. "Double bubbles sans toil and trouble: discrete circulation-preserving vortex sheets for soap films and foams." ACM Transactions on Graphics (TOG) 34.4 (2015): 149. (http://www.cs.columbia.edu/cg/doublebubbles/), including the multimaterial mesh-based surface tracking library LosTopo. 
+The repository contains the test program accompanying the paper by Da et al., including the multimaterial mesh-based surface tracking library LosTopo. It also includes the curvature computation proposed in the article by Fei et al. 
 
 This program is built by standard procedures using CMAKE (http://www.cmake.org).
 
@@ -52,5 +52,10 @@ Since FMMTL is not supported on Windows, running can be slower than expected.
 
 Please run the code using the project folder that containing everything (assets, code, etc.) as the working directory. 
 
+Citations
+--------------------
+Da, Fang, et al. "Double bubbles sans toil and trouble: Discrete circulation-preserving vortex sheets for soap films and foams." ACM Transactions on Graphics (TOG) 34.4 (2015): 149. (http://www.cs.columbia.edu/cg/doublebubbles/)
 
+Da, Fang, Christopher Batty, and Eitan Grinspun. "Multimaterial mesh-based surface tracking." ACM Trans. Graph. 33.4 (2014): 112-1. (http://www.cs.columbia.edu/cg/multitracker/)
 
+Fei, Yun (Raymond), et al. "Addressing Troubles with Double Bubbles: Convergence and Stability at Multi-Bubble Junctions." arXiv preprint arXiv:1910.06402 (2019). (https://arxiv.org/abs/1910.06402)
