@@ -80,7 +80,7 @@ namespace {
     class CCollisionCandidateSetLT
     {
     public:
-        bool operator () (const Vec3st & a, const Vec3st & b)
+        bool operator () (const Vec3st & a, const Vec3st & b) const
         {
             return CollisionCandidateSetLT(a, b);
         }
