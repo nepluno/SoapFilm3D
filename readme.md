@@ -26,7 +26,7 @@ On Windows you may need manually download and install some of them.
 
 Compilation
 -----------------
-SoapFilm3D has been tested with Clang (under Mac OS X), and GCC 4.8+ (under Linux). Currently the MSVC compiler is partially supported without the FMMTL module.
+SoapFilm3D has been tested with Clang (under Mac OS X), and GCC 4.8+ (under Linux and [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)). Currently the MSVC compiler is partially supported without the FMMTL module.
 
 To compile SoapFilm3D, you'll need CMake on Mac OS X or Linux.
 
@@ -34,7 +34,16 @@ To compile SoapFilm3D, you'll need CMake on Mac OS X or Linux.
 2. Optionally you can adjust the options with *ccmake .*
 3. type *make* to compile the code. For speeding up the compilation process you may use *make -j*.
 
-On Windows:
+On Windows Subsystem for Linux (with GCC):.
+
+1. follow the [guide](https://techcommunity.microsoft.com/t5/windows-dev-appconsult/running-wsl-gui-apps-on-windows-10/ba-p/1493242) to install [VcXsrv](https://sourceforge.net/projects/vcxsrv/) on Windows
+2. run VcXsrv with the access control disabled
+3. under the WSL environment (assuming WSL has been installed following [the guide](https://docs.microsoft.com/en-us/windows/wsl/install-win10)), make sure OpenGL is accessible. You may enable OpenGL through `sudo apt-get install ubuntu-desktop mesa-utils` and check if the `glxgears` is runnable.
+4. under the WSL environment, make a directory, say, *build*, with *mkdir build*, enter the *build* directory, type *cmake ..*
+5. turn on the `NO_SHADER` option with ccmake.
+6. type *make* to compile the code. For speeding up the compilation process you may use *make -j*.
+
+On Native Windows (with MSVC):
 
 1. open CMake-GUI, enter the correct directory for source code and build. Then click *Configure*, choose your installed version of the Microsoft Visual Studio.
 2. after configuration you may find several libraries not found (with notifications of errors), check the *Advanced* box and *specify those missing header path and libraries manually*. For example, if Eigen is missing, then please specify the EIGEN3_INCLUDE_DIR to the path of directory we provided. For the ones we have not provided, you need to download and compile them, and then specify the missing directories to the path containing your headers or compiled libraries. Please make sure you have picked the libraries corresponding to the architecture you have selected (say, 32-bit libraries for x86, and 64-bit libraries for x64).
@@ -50,7 +59,7 @@ Running the executables without command line arguments will display usage
 information. All the data files for testing are located in the assets folder.
 Since FMMTL is not supported on Windows, running can be slower than expected.
 
-Please run the code using the project folder that containing everything (assets, code, etc.) as the working directory. 
+**Please run the code using the project folder that containing everything (assets, code, etc.) as the working directory.**
 
 Citations
 --------------------
