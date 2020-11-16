@@ -24,7 +24,7 @@ class VS3D : public LosTopos::SurfTrack::SolidVerticesCallback, public LosTopos:
 {
     friend class Sim;
     friend class Scenes;
-    friend VecXd BiotSavart(VS3D & vs, const VecXd & dx);
+    friend VecXd BiotSavartFunc(VS3D & vs, const VecXd & dx);
     friend VecXd BiotSavart_naive(VS3D & vs, const VecXd & dx);
     friend VecXd BiotSavart_fmmtl(VS3D & vs, const VecXd & dx);
     

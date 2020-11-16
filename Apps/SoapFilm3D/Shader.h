@@ -17,16 +17,18 @@
 #include <OpenGL/glu.h>
 #include <GLUT/glut.h>
 #else
-#ifdef WIN32
+#ifdef _MSC_VER
 #define NOMINMAX
 #include <Windows.h>
-#endif
 #include <glew.h>
+#else
+#include <GL/glew.h>
+#endif
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
-
 #endif
+
 #include <string>
 #include <vector>
 #include <map>

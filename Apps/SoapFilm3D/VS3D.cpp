@@ -18,7 +18,7 @@
 #include "SimpleGravityForce.h"
 #include "VertexAreaForce.h"
 
-VecXd BiotSavart(VS3D & vs, const VecXd & dx);
+VecXd BiotSavartFunc(VS3D & vs, const VecXd & dx);
 
 bool VS3D::isVertexConstrained( size_t vert )
 {
@@ -669,7 +669,7 @@ double VS3D::step(double dt)
             m_obefv[i] = obefv[i];
     }
     // following the open boundary solve, recompute the velocities
-    VecXd newv = BiotSavart(*this, VecXd::Zero(mesh().nv() * 3));
+    VecXd newv = BiotSavartFunc(*this, VecXd::Zero(mesh().nv() * 3));
     for (size_t i = 0; i < mesh().nv(); i++)
         m_st->pm_newpositions[i] = m_st->pm_positions[i] + vc(newv.segment<3>(i * 3)) * dt;
     
@@ -821,7 +821,7 @@ double VS3D::step(double dt)
         }
     }
     // recompute the velocity after the constraint projection
-    newv = BiotSavart(*this, VecXd::Zero(mesh().nv() * 3));
+    newv = BiotSavartFunc(*this, VecXd::Zero(mesh().nv() * 3));
     for (size_t i = 0; i < mesh().nv(); i++)
         m_st->pm_newpositions[i] = m_st->pm_positions[i] + vc(newv.segment<3>(i * 3)) * dt;
     

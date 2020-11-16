@@ -9,7 +9,7 @@
 #include "VS3D.h"
 #include "SimOptions.h"
 
-#ifndef WIN32
+#ifndef _MSC_VER
 #include "fmmtl/fmmtl/KernelMatrix.hpp"
 #include "fmmtl/kernel/BiotSpherical.hpp"
 #include "fmmtl/kernel/RMSpherical.hpp"
@@ -95,7 +95,7 @@ namespace
         
         return vel;
     }
-#ifndef WIN32
+#ifndef _MSC_VER
     VecXd BiotSavart_fmmtl(VS3D & vs, const VecXd & dx)
     {
         // code adapted from FMMTL example test "error_biot.cpp"
@@ -181,9 +181,9 @@ namespace
         return vel;
     }
 #endif
-    VecXd BiotSavart(VS3D & vs, const VecXd & dx)
+    VecXd BiotSavartFunc(VS3D & vs, const VecXd & dx)
     {
-#ifndef WIN32
+#ifndef _MSC_VER
         if (Options::boolValue("fmmtl"))
             return BiotSavart_fmmtl(vs, dx);
         else
@@ -439,15 +439,15 @@ void VS3D::step_explicit(double dt)
     if (Options::boolValue("RK4-velocity-integration"))
     {
         // RK4 integration
-        VecXd v1 = BiotSavart(*this, VecXd::Zero(mesh().nv() * 3));
-        VecXd v2 = BiotSavart(*this, v1 * dt * 0.5);
-        VecXd v3 = BiotSavart(*this, v2 * dt * 0.5);
-        VecXd v4 = BiotSavart(*this, v3 * dt);
+        VecXd v1 = BiotSavartFunc(*this, VecXd::Zero(mesh().nv() * 3));
+        VecXd v2 = BiotSavartFunc(*this, v1 * dt * 0.5);
+        VecXd v3 = BiotSavartFunc(*this, v2 * dt * 0.5);
+        VecXd v4 = BiotSavartFunc(*this, v3 * dt);
         v = (v1 + 2 * v2 + 2 * v3 + v4) / 6;
     } else
     {
         // explicit Euler
-        v = BiotSavart(*this, VecXd::Zero(mesh().nv() * 3));
+        v = BiotSavartFunc(*this, VecXd::Zero(mesh().nv() * 3));
     }
   
     for (size_t i = 0; i < mesh().nv(); i++)
