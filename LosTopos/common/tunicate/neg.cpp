@@ -9,8 +9,4 @@
 // performed by the compiler at link time could defeat this; you might have
 // to struggle with your compiler.
 
-double
-neg(double x)
-{
-    return -x;
-}
+double neg(double x) { return -x; }

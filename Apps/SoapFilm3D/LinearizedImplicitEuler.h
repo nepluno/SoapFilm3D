@@ -6,19 +6,18 @@
 
 #include "SceneStepper.h"
 
-class LinearizedImplicitEuler : public SceneStepper
-{
-public:
+class LinearizedImplicitEuler : public SceneStepper {
+ public:
   LinearizedImplicitEuler();
-  
+
   virtual ~LinearizedImplicitEuler();
-  
-  virtual bool stepScene( VS3D& scene, scalar dt );
-  
+
+  virtual bool stepScene(VS3D& scene, scalar dt);
+
   virtual std::string getName() const;
 
-private:
-  void zeroFixedDoFs( const VS3D& scene, VectorXs& vec );
+ private:
+  void zeroFixedDoFs(const VS3D& scene, VectorXs& vec);
 };
 
 #endif

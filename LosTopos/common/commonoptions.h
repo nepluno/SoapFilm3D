@@ -25,7 +25,6 @@ const double BIG_DOUBLE = 1e30;
 typedef SSIZE_T ssize_t;
 #endif
 
-const size_t UNINITIALIZED_SIZE_T = static_cast<size_t> (~0);
+const size_t UNINITIALIZED_SIZE_T = static_cast<size_t>(~0);
 
 #endif
-

@@ -5,13 +5,12 @@
 
 class VS3D;
 
-class SceneStepper
-{
-public:
+class SceneStepper {
+ public:
   virtual ~SceneStepper();
-  
-  virtual bool stepScene( VS3D& scene, scalar dt ) = 0;
-  
+
+  virtual bool stepScene(VS3D& scene, scalar dt) = 0;
+
   virtual std::string getName() const = 0;
 };
 

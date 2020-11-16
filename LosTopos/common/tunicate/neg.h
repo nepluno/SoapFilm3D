@@ -3,15 +3,14 @@
 
 // Released into the public domain by Robert Bridson, 2009.
 
-#ifdef __cplusplus   
+#ifdef __cplusplus
 extern "C" {
 #endif
-    
-    double
-    neg(double x);
-    
+
+double neg(double x);
+
 #ifdef __cplusplus
-} // end of extern "C" block
+}  // end of extern "C" block
 #endif
 
 #endif

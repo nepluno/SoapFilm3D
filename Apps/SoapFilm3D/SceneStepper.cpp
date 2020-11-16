@@ -1,4 +1,3 @@
 #include "SceneStepper.h"
 
-SceneStepper::~SceneStepper()
-{}
+SceneStepper::~SceneStepper() {}

@@ -2,9 +2,9 @@
 #define __MATH_DEFS_H__
 
 #include <Eigen/Core>
-#include <Eigen/StdVector>
-#include <Eigen/Sparse>
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
+#include <Eigen/StdVector>
 
 typedef double scalar;
 
@@ -463,11 +463,10 @@ typedef Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> MatrixXi;
 
 typedef Eigen::SparseMatrix<scalar> SparseXs;
 typedef Eigen::Triplet<scalar> Triplets;
-typedef std::vector< Triplets > TripletXs;
+typedef std::vector<Triplets> TripletXs;
 typedef Eigen::Triplet<int> Tripleti;
-typedef std::vector< Tripleti > TripletXi;
+typedef std::vector<Tripleti> TripletXi;
 
-
-//typedef Matrix<int, 1, 2> RowVector2i;
+// typedef Matrix<int, 1, 2> RowVector2i;
 
 #endif

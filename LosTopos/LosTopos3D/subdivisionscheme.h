@@ -32,20 +32,20 @@ class NonDestructiveTriMesh;
 
 // --------------------------------------------------------
 ///
-/// Subdivision scheme interface.  Declares the function prototype for finding an interpolated vertex location.
+/// Subdivision scheme interface.  Declares the function prototype for finding
+/// an interpolated vertex location.
 ///
 // --------------------------------------------------------
 
-class SubdivisionScheme
-{
-public:
-    
-    virtual ~SubdivisionScheme() {}
-    
-    /// Given an edge, compute the offset midpoint
-    ///
-    virtual void generate_new_midpoint( size_t edge_index, const SurfTrack& surface, Vec3d& new_point ) = 0;
-    
+class SubdivisionScheme {
+ public:
+  virtual ~SubdivisionScheme() {}
+
+  /// Given an edge, compute the offset midpoint
+  ///
+  virtual void generate_new_midpoint(size_t edge_index,
+                                     const SurfTrack& surface,
+                                     Vec3d& new_point) = 0;
 };
 
 // --------------------------------------------------------
@@ -54,74 +54,63 @@ public:
 ///
 // --------------------------------------------------------
 
-class MidpointScheme : public SubdivisionScheme
-{
-public:
-    
-    /// Given an edge, compute the offset midpoint
-    ///
-    void generate_new_midpoint( size_t edge_index, const SurfTrack& surface, Vec3d& new_point );   
-    
+class MidpointScheme : public SubdivisionScheme {
+ public:
+  /// Given an edge, compute the offset midpoint
+  ///
+  void generate_new_midpoint(size_t edge_index, const SurfTrack& surface,
+                             Vec3d& new_point);
 };
 
 // --------------------------------------------------------
 ///
-/// Butterfly scheme: uses a defined weighting of nearby vertices to determine the new vertex location
+/// Butterfly scheme: uses a defined weighting of nearby vertices to determine
+/// the new vertex location
 ///
 // --------------------------------------------------------
 
-class ButterflyScheme : public SubdivisionScheme
-{
-public:  
-    
-    /// Given an edge, compute the offset midpoint
-    ///
-    void generate_new_midpoint( size_t edge_index, const SurfTrack& surface, Vec3d& new_point );
-    
+class ButterflyScheme : public SubdivisionScheme {
+ public:
+  /// Given an edge, compute the offset midpoint
+  ///
+  void generate_new_midpoint(size_t edge_index, const SurfTrack& surface,
+                             Vec3d& new_point);
 };
 
-
 // --------------------------------------------------------
 ///
-/// Quadric error minimization scheme: places the new vertex at the location that minimizes the change in the quadric metric tensor along the edge.
+/// Quadric error minimization scheme: places the new vertex at the location
+/// that minimizes the change in the quadric metric tensor along the edge.
 ///
 // --------------------------------------------------------
 
-class QuadraticErrorMinScheme : public SubdivisionScheme
-{
-public:
-    
-    /// Given an edge, compute the offset midpoint
-    ///
-    void generate_new_midpoint( size_t edge_index, const SurfTrack& surface, Vec3d& new_point );
-    
+class QuadraticErrorMinScheme : public SubdivisionScheme {
+ public:
+  /// Given an edge, compute the offset midpoint
+  ///
+  void generate_new_midpoint(size_t edge_index, const SurfTrack& surface,
+                             Vec3d& new_point);
 };
 
-
 // --------------------------------------------------------
 ///
-/// Modified Butterfly scheme: uses the method of Zorin et al. to generate a new vertex, for meshes with arbitrary topology
+/// Modified Butterfly scheme: uses the method of Zorin et al. to generate a new
+/// vertex, for meshes with arbitrary topology
 ///
 // --------------------------------------------------------
 
-class ModifiedButterflyScheme : public SubdivisionScheme
-{
-    
-public:  
+class ModifiedButterflyScheme : public SubdivisionScheme {
+ public:
+  ModifiedButterflyScheme();
 
-    ModifiedButterflyScheme();
+  /// Given an edge, compute the offset midpoint
+  ///
+  void generate_new_midpoint(size_t edge_index, const SurfTrack& surface,
+                             Vec3d& new_point);
 
-    /// Given an edge, compute the offset midpoint
-    ///
-    void generate_new_midpoint( size_t edge_index, const SurfTrack& surface, Vec3d& new_point );
-
-    std::vector<std::vector<double> > weights;
+  std::vector<std::vector<double> > weights;
 };
 
-
-}
+}  // namespace LosTopos
 
 #endif
-
-
-
