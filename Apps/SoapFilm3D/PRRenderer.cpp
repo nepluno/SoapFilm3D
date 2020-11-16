@@ -12,13 +12,14 @@
 
 PRRenderer::PRRenderer(VS3D *vs)
     : m_vs(vs), m_shader_bubble(), m_shader_env(), m_tex_env(0) {
+#ifndef NO_SHADER
   m_shader_bubble.setVertexAttribName("a_position", 0);
   m_shader_bubble.setVertexAttribName("a_normal", 1);
   m_shader_bubble.loadFromFile("Apps/SoapFilm3D/PR");
 
   m_shader_env.setVertexAttribName("a_position", 0);
   m_shader_env.loadFromFile("Apps/SoapFilm3D/env");
-
+#endif
   create_cube_map("Apps/SoapFilm3D/textures/beach", m_tex_env);
 }
 

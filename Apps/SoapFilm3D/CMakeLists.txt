@@ -35,6 +35,12 @@ else (GLEW_FOUND)
   message (SEND_ERROR "Unable to locate GLEW")
 endif()
 
+option(NO_SHADER "Build Without Shader" OFF)
+
+if(NO_SHADER)
+add_definitions(-DNO_SHADER)
+endif()
+
 include_directories (${EIGEN_INCLUDE_DIR})
 
 add_executable (SoapFilm3D ${Headers} ${Sources})
