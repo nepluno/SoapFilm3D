@@ -8,8 +8,6 @@
 
 #include "VS3D.h"
 
-#include "ADT/adreal.h"
-#include "ADT/advec.h"
 #include "LinearBendingForce.h"
 #include "LinearizedImplicitEuler.h"
 #include "LosTopos/LosTopos3D/subdivisionscheme.h"
