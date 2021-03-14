@@ -8,6 +8,10 @@ The repository contains the test program accompanying the paper by Da et al., in
 
 This program is built by standard procedures using CMAKE (http://www.cmake.org).
 
+Houdini Plugin
+--------------------
+The corresponding Houdini plugin [Bubble<sup>H</sup>](https://sergeneren.com/2019/10/08/bubbleh/) developed by Sergen Eren can be found in this repository: https://github.com/sergeneren/BubbleH
+
 Dependencies
 --------------------
 The following external libraries are required:
