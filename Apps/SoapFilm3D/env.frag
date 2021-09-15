@@ -1,7 +1,7 @@
 //
 //  env.frag
 
-//precision mediump float;
+// precision mediump float;
 
 uniform samplerCube u_tex_env;
 
@@ -10,12 +10,7 @@ uniform vec3 u_camera_pos;
 
 varying vec4 v_position_world;
 
-void main()
-{
-    vec3 viewvec = v_position_world.xyz / v_position_world.w - u_camera_pos;
-    gl_FragColor = textureCube(u_tex_env, viewvec);
-    
+void main() {
+  vec3 viewvec = v_position_world.xyz / v_position_world.w - u_camera_pos;
+  gl_FragColor = textureCube(u_tex_env, viewvec);
 }
-
-
-
