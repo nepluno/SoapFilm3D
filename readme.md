@@ -1,20 +1,20 @@
 [![Double bubbles sans toil and trouble: discrete circulation-preserving vortex sheets for soap films and foams](http://www.cs.columbia.edu/cg/doublebubbles/title.jpg)](http://www.cs.columbia.edu/cg/doublebubbles/)
 
-SoapFilm3D is an open source project for the physical simulation of soap films and bubbles. It is cross-platform (Mac OS X, Linux, Windows, and more), and licensed under the Mozilla Public License v. 2.0.
+SoapFilm3D is an open source project for the physical simulation of soap films and bubbles. It runs on Mac OS X (either Intel or Apple Silicon), Linux, and Windows. The code is licensed under the Mozilla Public License v. 2.0.
 
 We would like to hear from you if you appreciate this work.
 
 The repository contains the test program accompanying the paper by Da et al., including the multimaterial mesh-based surface tracking library LosTopo. It also includes the curvature computation proposed in the article by Fei et al. 
 
-This program is built by standard procedures using CMAKE (http://www.cmake.org).
+This program is built by standard procedures using [CMake](http://www.cmake.org).
 
 Houdini Plugin
 --------------------
-The corresponding Houdini plugin [Bubble<sup>H</sup>](https://sergeneren.com/2019/10/08/bubbleh/) developed by Sergen Eren can be found in this repository: https://github.com/sergeneren/BubbleH
+The corresponding Houdini plugin [Bubble<sup>H</sup>](https://sergeneren.com/2019/10/08/bubbleh/) developed by Sergen Eren can be found in [this repository](https://github.com/sergeneren/BubbleH).
 
 Dependencies
 --------------------
-The following external libraries are required:
+The following dependencies are required:
 
 * Eigen (http://eigen.tuxfamily.org)
 * OpenGL and GLUT (http://www.opengl.org/resources/libraries/glut/)
@@ -23,8 +23,11 @@ The following external libraries are required:
 * libPNG (https://libpng.sourceforge.io/)
 * zLib (https://www.zlib.net/)
 * GLEW (http://glew.sourceforge.net/)
+* OpenMP
 
-On Mac OS X or Linux-based systems, most of the dependencies are either included, or can be easily installed with Homebrew (https://brew.sh) or the APT package handling utility. 
+On Mac OS X or Linux-based systems, most of the dependencies are either included, or can be easily installed with [Homebrew](https://brew.sh) or the APT package handling utility. 
+
+For using OpenMP with AppleClang on Mac OS X, please follow [this guide](https://mac.r-project.org/openmp/) to download the OpenMP run-time libraries and headers and put them into the corresponding system directories.
 
 On Windows you may need manually download and install some of them.
 
