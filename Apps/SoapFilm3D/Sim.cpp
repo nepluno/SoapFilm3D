@@ -324,6 +324,7 @@ void Sim::step() {
   double dt = m_vs->step(m_dt);
 
   // compute the volumes
+#ifdef _DEBUG
   std::vector<double> volumes(m_vs->m_nregion, 0);
   Vec3d xref(0, 0, 0);
   for (size_t i = 0; i < m_vs->mesh().nt(); i++) {
@@ -341,7 +342,7 @@ void Sim::step() {
   std::cerr << m_time;
   for (size_t i = 0; i < volumes.size(); i++) std::cerr << " " << volumes[i];
   std::cerr << std::endl;
-
+#endif
   // advance time
   m_frameid++;
   m_time += m_dt;
@@ -797,15 +798,7 @@ void Sim::render(RenderMode rm, const Vec2d &mousepos, int selection_mask) {
     glBegin(GL_POINTS);
     for (size_t i = 0; i < m_vs->surfTrack()->m_mesh.nv(); i++) {
       if (rm == RM_NONMANIFOLD) {
-        //                if
-        //                (!is_vertex_next_to_nonmanifold_vertices(*m_vs->surfTrack(),
-        //                i))
         if (!is_vertex_nonmanifold(*m_vs->surfTrack(), i)) continue;
-      }
-
-      if (m_vs->m_dbg_v1.size() == m_vs->mesh().nv()) {
-        double s = m_vs->m_dbg_v1[i][0] * 0.1;
-        glColor3d(1 - s, 0, 1 + s);
       }
 
       const LosTopos::Vec3d &x = m_vs->surfTrack()->pm_positions[i];
@@ -893,92 +886,6 @@ void Sim::render(RenderMode rm, const Vec2d &mousepos, int selection_mask) {
     glEnd();
   }
 
-  // render debugging quantities
-  if (false && m_vs->m_dbg_t1.size() == m_vs->mesh().nt()) {
-    glBegin(GL_LINES);
-    for (size_t i = 0; i < m_vs->mesh().nt(); i++) {
-      LosTopos::Vec3st t = m_vs->mesh().get_triangle(i);
-      Vec3d x0 = m_vs->pos(t[0]);
-      Vec3d x1 = m_vs->pos(t[1]);
-      Vec3d x2 = m_vs->pos(t[2]);
-
-      double s = 0.2;
-      Vec3d b = (x0 + x1 + x2) / 3;
-      Vec3d e = b + s * m_vs->m_dbg_t1[i];
-
-      glColor3d(1, 0, 0);
-      glVertex3d(b[0], b[1], b[2]);
-      glColor3d(0, 1, 0);
-      glVertex3d(e[0], e[1], e[2]);
-    }
-    glEnd();
-  }
-
-  if (false && m_vs->m_dbg_t2.size() == m_vs->mesh().nt()) {
-    glBegin(GL_LINES);
-    for (size_t i = 0; i < m_vs->mesh().nt(); i++) {
-      LosTopos::Vec3st t = m_vs->mesh().get_triangle(i);
-      Vec3d x0 = m_vs->pos(t[0]);
-      Vec3d x1 = m_vs->pos(t[1]);
-      Vec3d x2 = m_vs->pos(t[2]);
-
-      double s = 1.2;
-      Vec3d b = (x0 + x1 + x2) / 3;
-      Vec3d e = b + s * m_vs->m_dbg_t2[i];
-
-      glColor3d(1, 0, 0);
-      glVertex3d(b[0], b[1], b[2]);
-      glColor3d(0, 1, 0);
-      glVertex3d(e[0], e[1], e[2]);
-    }
-    glEnd();
-  }
-
-  if (false && m_vs->m_dbg_e1.size() == m_vs->mesh().ne()) {
-    glLineWidth(1);
-    glBegin(GL_LINES);
-    for (size_t i = 0; i < m_vs->mesh().ne(); i++) {
-      //            if (m_vs->m_dbg_e1[i] > 0)
-      //                glColor3d(0, 0, 1);
-      //            else
-      //                glColor3d(1, 0, 1);
-
-      double s = (m_vs->m_dbg_e1[i][0]) * 0.5;
-      glColor3d(1 - s, 0, 1 + s);
-
-      Vec3d x0 = m_vs->pos(m_vs->mesh().m_edges[i][0]);
-      Vec3d x1 = m_vs->pos(m_vs->mesh().m_edges[i][1]);
-      glVertex3d(x0[0], x0[1], x0[2]);
-      glVertex3d(x1[0], x1[1], x1[2]);
-    }
-    glEnd();
-    glLineWidth(1);
-  }
-
-  // render velocity
-  if (true && m_vs->m_dbg_v2.size() == m_vs->mesh().nv()) {
-    glColor3d(0, 0.5, 0);
-    glBegin(GL_LINES);
-    for (size_t i = 0; i < m_vs->mesh().nv(); i++) {
-      Vec3d x = m_vs->pos(i);
-      Vec3d v = m_vs->m_dbg_v2[i];
-
-      if (truncate)
-        if (x[0] > 0.5 || x[0] < -0.5) continue;
-
-      if (rm == RM_NONMANIFOLD) {
-        if (!is_vertex_next_to_nonmanifold_vertices(*m_vs->surfTrack(), i))
-          continue;
-      }
-
-      double s = 0.3;
-      Vec3d e = x + v * s;
-      glVertex3d(x[0], x[1], x[2]);
-      glVertex3d(e[0], e[1], e[2]);
-    }
-    glEnd();
-  }
-
   if (m_nearest_edge >= 0) {
     glColor3d(0, 0, 0);
     glLineWidth(3);
@@ -998,12 +905,6 @@ void Sim::showPrimitiveInfo() {
               << m_vs->pos(m_nearest_vertex).transpose() << ")" << std::endl;
     std::cout << "  circulation = " << std::endl
               << m_vs->Gamma(m_nearest_vertex).values << std::endl;
-    if (m_vs->m_dbg_v1.size() == m_vs->mesh().nv()) {
-      std::cout << "  dbg v1 = ";
-      for (size_t i = 0; i < m_vs->m_dbg_v1[m_nearest_vertex].size(); i++)
-        std::cout << m_vs->m_dbg_v1[m_nearest_vertex][i] << " ";
-      std::cout << std::endl;
-    }
     std::cout << "  incident edges:";
     for (size_t i = 0;
          i < m_vs->mesh().m_vertex_to_edge_map[m_nearest_vertex].size(); i++)

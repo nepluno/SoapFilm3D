@@ -710,10 +710,11 @@ int DynamicSurface::get_region_containing_point(const Vec3d& p) {
 
 void DynamicSurface::integrate(double desired_dt, double& actual_dt) {
   if (m_collision_safety) {
-    std::cout << "Checking collisions before integration.\n";
+#ifdef _DEBUG
     assert_mesh_is_intersection_free(false);
+#endif
   }
-  std::cout << "Integrating\n";
+
   static const bool DEGEN_DOES_NOT_COUNT = false;
   static const bool USE_NEW_POSITIONS = true;
 
@@ -780,7 +781,7 @@ void DynamicSurface::integrate(double desired_dt, double& actual_dt) {
 
         continue;
       }
-
+#ifdef _DEBUG
       // verify intersection-free predicted mesh
       std::vector<Intersection> intersections;
       get_intersections(DEGEN_DOES_NOT_COUNT, USE_NEW_POSITIONS, intersections);
@@ -811,6 +812,7 @@ void DynamicSurface::integrate(double desired_dt, double& actual_dt) {
 
         continue;
       }
+#endif
     }
 
     // Set m_positions
@@ -831,7 +833,6 @@ void DynamicSurface::integrate(double desired_dt, double& actual_dt) {
   g_stats.add_per_frame_double("DynamicSurface:integration_time_per_timestep",
                                step, end_time - start_time);
   ++step;
-  std::cout << "Done integrating\n";
 }
 
 // ---------------------------------------------------------

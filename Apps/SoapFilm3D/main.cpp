@@ -131,7 +131,6 @@ void idle() {
 
   if (g_sc.autoload) {
     if (!g_sim.load(1)) exit(0);
-    g_sim.vs()->update_dbg_quantities();
     g_sim.stepOutput(g_sc.headless);
 
     if (!g_sc.headless) glutPostRedisplay();
@@ -181,19 +180,15 @@ void keyboard(unsigned char k, int x, int y) {
     g_sim.showPrimitiveInfo();
   } else if (k == ']' || k == '}') {
     g_sim.load(k == ']' ? 1 : 10);
-    g_sim.vs()->update_dbg_quantities();
     glutPostRedisplay();
   } else if (k == '[' || k == '{') {
     g_sim.load(k == '[' ? -1 : -10);
-    g_sim.vs()->update_dbg_quantities();
     glutPostRedisplay();
   } else if (k == '.' || k == '>') {
     g_sim.load(k == '.' ? 100 : 1000);
-    g_sim.vs()->update_dbg_quantities();
     glutPostRedisplay();
   } else if (k == ',' || k == '<') {
     g_sim.load(k == ',' ? -100 : -1000);
-    g_sim.vs()->update_dbg_quantities();
     glutPostRedisplay();
   } else if (k == 'o' || k == 'O') {
     MeshIO::saveOBJ(*(g_sim.vs()), "mesh.obj");

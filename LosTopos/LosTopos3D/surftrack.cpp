@@ -1095,118 +1095,32 @@ void SurfTrack::improve_mesh() {
     int i = 0;
 
     // edge splitting
-    std::cout << "Splits\n";
     while (m_splitter.split_pass()) {
       if (m_mesheventcallback)
         m_mesheventcallback->log()
             << "Split pass " << i << " finished" << std::endl;
       i++;
-      std::cout << "Splits\n";
     }
-
-    //        // edge flipping
-    //        std::cout << "Flips\n";
-    //        m_flipper.flip_pass();
-    //        if (m_mesheventcallback)
-    //            m_mesheventcallback->log() << "Flip pass finished" <<
-    //            std::endl;
 
     // edge collapsing
     i = 0;
-    std::cout << "Collapses\n";
     while (m_collapser.collapse_pass()) {
       if (m_mesheventcallback)
         m_mesheventcallback->log()
             << "Collapse pass " << i << " finished" << std::endl;
       i++;
-      std::cout << "Collapses\n";
     }
 
     // process t1 transitions (vertex separation)
     i = 0;
 
     while (m_t1_transition_enabled && m_t1transition.t1_pass()) {
-      std::cout << "T1's\n";
       if (m_mesheventcallback)
         m_mesheventcallback->log()
             << "T1 pass " << i << " finished" << std::endl;
       i++;
     }
 
-    //        // smoothing
-    //        if ( m_perform_smoothing)
-    //        {
-    //            std::cout << "Smoothing\n";
-    //            m_smoother.null_space_smoothing_pass( 1.0 );
-    //            if (m_mesheventcallback)
-    //                m_mesheventcallback->log() << "Smoothing pass finished" <<
-    //                std::endl;
-    //        }
-
-    //
-    //        ////////////////////////////////////////////////////////////
-    //        //enter aggressive improvement mode to improve remaining bad
-    //        triangles up to minimum bounds,
-    //        //potentially at the expense of some shape deterioration. (aka.
-    //        BEAST MODE!!1!1!!)
-    //
-    //        m_aggressive_mode = true;
-    //        //m_verbose = true;
-    //        i = 0;
-    //        while(any_triangles_with_bad_angles() && i < 100) {
-    //            //enter aggressive mode
-    //
-    //            std::cout << "Aggressive mesh improvement iteration #" << i <<
-    //            "." << std::endl;
-    //
-    //            m_splitter.split_pass();
-    //            if (m_mesheventcallback)
-    //                m_mesheventcallback->log() << "Aggressive split pass " <<
-    //                i << " finished" << std::endl;
-    //
-    //            //switch to delaunay criterion for this, since it is purported
-    //            to produce better angles for a given vertex set.
-    //            m_flipper.m_use_Delaunay_criterion = true;
-    //            m_flipper.flip_pass();
-    //            if (m_mesheventcallback)
-    //                m_mesheventcallback->log() << "Aggressive flip pass " << i
-    //                << " finished" << std::endl;
-    //            m_flipper.m_use_Delaunay_criterion = false; //switch back to
-    //            valence-based mode
-    //
-    //            //try to cut out early if things have already gotten better.
-    //            if(!any_triangles_with_bad_angles())
-    //                break;
-    //
-    //            m_collapser.collapse_pass();
-    //            if (m_mesheventcallback)
-    //                m_mesheventcallback->log() << "Aggressive collapse pass "
-    //                << i << " finished" << std::endl;
-    //
-    //            //try to cut out early if things have already gotten better.
-    //            if(!any_triangles_with_bad_angles())
-    //                break;
-    //
-    //            if (m_perform_smoothing)
-    //            {
-    //                m_smoother.null_space_smoothing_pass( 1.0 );
-    //                if (m_mesheventcallback)
-    //                    m_mesheventcallback->log() << "Aggressive smoothing
-    //                    pass " << i << " finished" << std::endl;
-    //            }
-    //
-    //            i++;
-    //            //start dumping warning messages if we're doing a lot of
-    //            iterations.
-    //
-    //        }
-    //
-    //        m_aggressive_mode = false;
-    //        //m_verbose = false;
-    //
-    //        assert_no_bad_labels();
-
-    std::cout << "Done improvement\n" << std::endl;
     if (m_collision_safety) {
       assert_mesh_is_intersection_free(false);
     }
@@ -1221,7 +1135,6 @@ void SurfTrack::cut_mesh(const std::vector<std::pair<size_t, size_t> >& edges) {
   m_cutter.separate_edges_new(edges);
 
   if (m_collision_safety) {
-    // std::cout << "Checking collisions after cutting.\n";
     assert_mesh_is_intersection_free(false);
   }
 }

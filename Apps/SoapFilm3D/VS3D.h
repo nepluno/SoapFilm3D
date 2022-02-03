@@ -76,8 +76,6 @@ class VS3D : public LosTopos::SurfTrack::SolidVerticesCallback,
 
   double step(double dt);
 
-  void update_dbg_quantities();
-
   const std::vector<size_t>& constrainedVertices() const {
     return m_constrained_vertices;
   }
@@ -251,12 +249,6 @@ class VS3D : public LosTopos::SurfTrack::SolidVerticesCallback,
       m_Gamma;  // average circulation of a vertex \Gamma (one scalar value for
                 // each region pair incident to the vertex)
 
-  std::vector<Vec3d> m_dbg_t1;
-  std::vector<Vec3d> m_dbg_t2;
-  std::vector<std::vector<double> > m_dbg_e1;
-  std::vector<std::vector<double> > m_dbg_v1;
-  std::vector<Vec3d> m_dbg_v2;
-
   // constrained vertices
   std::vector<size_t> m_constrained_vertices;
   std::vector<Vec3d> m_constrained_positions;
@@ -264,6 +256,10 @@ class VS3D : public LosTopos::SurfTrack::SolidVerticesCallback,
   std::vector<double> m_constrained_mass;
   std::vector<unsigned char> m_constrained_fixed;
   std::unordered_set<size_t> m_constrained_mapping;
+
+  MatXd m_edge_curvatures;
+  MatXd m_vertex_curvatures;
+  VecXd m_avg_vertex_areas;
 
   std::vector<Force*> m_forces;
 

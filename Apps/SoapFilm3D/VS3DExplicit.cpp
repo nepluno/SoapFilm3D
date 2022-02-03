@@ -112,16 +112,22 @@ VecXd BiotSavart_fmmtl(VS3D& vs, const VecXd& dx) {
   typedef kernel_type::result_type result_type;
 
   // Init points and charges
-  std::vector<source_type> sources;
-  std::vector<target_type> targets;
-  std::vector<charge_type> charges;
+  static std::vector<source_type> sources;
+  static std::vector<target_type> targets;
+  static std::vector<charge_type> charges;
+  targets.resize(vs.mesh().nv());
+  sources.resize(vs.mesh().nt());
+  charges.resize(vs.mesh().nt());
 
   for (size_t i = 0; i < vs.mesh().nv(); i++) {
     Vec3d x = vs.pos(i);
-    targets.push_back(Vec<3, double>(x[0], x[1], x[2]));
+    targets[i] = Vec<3, double>(x[0], x[1], x[2]);
   }
 
-  for (size_t j = 0; j < vs.mesh().nt(); j++) {
+  int nt = vs.mesh().nt();
+
+#pragma omp parallel for
+  for (int j = 0; j < nt; j++) {
     LosTopos::Vec3st t = vs.mesh().get_triangle(j);
     if (vs.surfTrack()->vertex_is_any_solid(t[0]) &&
         vs.surfTrack()->vertex_is_any_solid(t[1]) &&
@@ -142,16 +148,8 @@ VecXd BiotSavart_fmmtl(VS3D& vs, const VecXd& dx) {
     Vec3d gamma = -(e01 * vs.Gamma(t[2]).get(l) + e12 * vs.Gamma(t[0]).get(l) +
                     e20 * vs.Gamma(t[1]).get(l));
 
-    //            Vec3d dx = x - xp;
-    ////            double dxn = dx.norm();
-    //            double dxn = sqrt(dx.squaredNorm() + vs.delta() * vs.delta());
-    //
-    //            v += gamma.cross(dx) / (dxn * dxn * dxn);
-    ////            v += gamma.cross(dx) / (dxn * dxn * dxn) * (1 - exp(-dxn /
-    ///m_delta));
-
-    sources.push_back(Vec<3, double>(xp[0], xp[1], xp[2]));
-    charges.push_back(Vec<3, double>(gamma[0], gamma[1], gamma[2]));
+    sources[j] = Vec<3, double>(xp[0], xp[1], xp[2]);
+    charges[j] = Vec<3, double>(gamma[0], gamma[1], gamma[2]);
   }
 
   // Build the FMM
@@ -160,7 +158,8 @@ VecXd BiotSavart_fmmtl(VS3D& vs, const VecXd& dx) {
 
   // Execute the FMM
   Clock t1;
-  std::vector<result_type> result = A * charges;
+  static std::vector<result_type> result;
+  result = A * charges;
   double time1 = t1.seconds();
 
   VecXd vel = VecXd::Zero(vs.mesh().nv() * 3);
@@ -186,30 +185,16 @@ VecXd BiotSavartFunc(VS3D& vs, const VecXd& dx) {
 //#define FANGS_PATCHED
 
 void VS3D::step_explicit(double dt) {
-  std::cout << "Explicit time stepping" << std::endl;
-  m_dbg_t1.clear();
-  m_dbg_t2.clear();
-  m_dbg_e1.clear();
-  m_dbg_v1.clear();
-
-  m_dbg_t1.resize(mesh().nt());
-  m_dbg_t2.resize(mesh().nt());
-  m_dbg_e1.resize(mesh().ne(), std::vector<double>(m_nregion, 0));
-  m_dbg_v1.resize(mesh().nv(), std::vector<double>(m_nregion, 0));
-
   // integrate surface tension force
+  m_edge_curvatures.resize(mesh().ne(), m_nregion);
+  m_vertex_curvatures.resize(mesh().nv(), m_nregion);
+  m_avg_vertex_areas.resize(mesh().nv());
 
-  std::vector<std::vector<double> > curvature(
-      mesh().ne(),
-      std::vector<double>(m_nregion,
-                          0));  // edge-aligned curvature (signed scalar)
-  std::vector<std::vector<double> > mean_curvatures(
-      mesh().nv(),
-      std::vector<double>(m_nregion,
-                          0));  // vertex-aligned mean curvature (signed scalar)
-  std::vector<double> avg_vertex_areas(mesh().nv(), 0.);
+  int nv = static_cast<int>(mesh().nv());
+  int ne = static_cast<int>(mesh().ne());
 
-  for (size_t i = 0; i < mesh().nv(); i++) {
+#pragma omp parallel for
+  for (int i = 0; i < nv; i++) {
     std::set<int> incident_region;
     double vertex_area = 0.0;
     for (size_t j = 0; j < mesh().m_vertex_to_triangle_map[i].size(); j++) {
@@ -231,12 +216,15 @@ void VS3D::step_explicit(double dt) {
     }
 
     if (incident_region.size() > 0) {
-      avg_vertex_areas[i] = vertex_area / (double)incident_region.size();
+      m_avg_vertex_areas[i] = vertex_area / (double)incident_region.size();
+    } else {
+      m_avg_vertex_areas[i] = 0.0;
     }
   }
 
   for (size_t region = 0; region < m_nregion; region++) {
-    for (size_t i = 0; i < mesh().ne(); i++) {
+#pragma omp parallel for
+    for (int i = 0; i < ne; i++) {
       std::vector<size_t>
           incident_faces;  // faces incident to edge i that have the label of
                            // interest (assume there are only two of them for
@@ -252,16 +240,11 @@ void VS3D::step_explicit(double dt) {
         incident_regions.insert(l[1]);
       }
       if (incident_faces.size() == 0) continue;
-      //            assert(incident_faces.size() == 2);
       if (incident_faces.size() != 2) {
-        //                std::cout << "Warning: incident_faces.size() != 2" <<
-        //                std::endl;
-        curvature[i][region] = 0;
+        m_edge_curvatures(i, region) = 0;
         continue;
       }
       bool nonmanifold = (incident_regions.size() > 2);
-
-      //            assert(mesh().m_edge_to_triangle_map[i].size() == 2);
       int v0 = mesh().m_edges[i][0];
       int v1 = mesh().m_edges[i][1];
       Vec3d x0 = pos(v0);
@@ -298,44 +281,13 @@ void VS3D::step_explicit(double dt) {
       n0.normalize();
       n1.normalize();
 
-      //            double curvature_i = 0;
-      //            if (nonmanifold)
-      //            {
-      //                curvature_i = n0.cross(n1).dot(et) / (et.norm() *
-      //                m_delta); // integral curvature along the curve
-      //                orghotonal to the edge in plane
-      //            } else
-      //            {
-      //                curvature_i = n0.cross(n1).dot(et) / edgeArea;
-      ////                curvature_i = angleAroundAxis(n0, n1, et) * et.norm()
-      //// edgeArea;
-      //            }
-
-      //            double curvature_i = n0.cross(n1).dot(et);
-      //            double curvature_i = (n0 - n1).dot((n0 +
-      //            n1).normalized().cross(et));
       double curvature_i = angleAroundAxis(n0, n1, et) * et.norm();
 
-      curvature[i][region] = curvature_i;
-      //            if (region == 1)
-      //                m_dbg_e1[i] = curvature_i;
-      m_dbg_e1[i][region] = curvature_i;
+      m_edge_curvatures(i, region) = curvature_i;
     }
 
-    //        for (size_t i = 0; i < mesh().nv(); i++)
-    //        {
-    //            double mean_curvature = 0;
-    //            for (size_t j = 0; j < mesh().m_vertex_to_edge_map[i].size();
-    //            j++)
-    //                mean_curvature +=
-    //                curvature[mesh().m_vertex_to_edge_map[i][j]][region];
-    //            mean_curvature /= mesh().m_vertex_to_edge_map[i].size();
-    //
-    //            (*m_Gamma)[i][region] += simOptions().sigma * mean_curvature *
-    //            dt; m_dbg_v1[i][region] = mean_curvature;
-    //        }
-
-    for (size_t i = 0; i < mesh().nv(); i++) {
+#pragma omp parallel for
+    for (int i = 0; i < nv; i++) {
       double mean_curvature = 0;
 
       Mat3d second_fundamental_form = Mat3d::Zero();
@@ -345,7 +297,7 @@ void VS3D::step_explicit(double dt) {
       double vertex_area = 0;
       double triple_junction_length_sum = 0;
 #else
-      double vertex_area = avg_vertex_areas[i];
+      double vertex_area = m_avg_vertex_areas[i];
 #endif
       for (size_t j = 0; j < mesh().m_vertex_to_edge_map[i].size(); j++) {
         size_t e = mesh().m_vertex_to_edge_map[i][j];
@@ -362,8 +314,8 @@ void VS3D::step_explicit(double dt) {
         if (incident_to_region) {
           Vec3d et = (pos(mesh().m_edges[e][1]) - pos(mesh().m_edges[e][0]))
                          .normalized();
-          second_fundamental_form += et * et.transpose() * curvature[e][region];
-          mean_curvature += curvature[e][region];
+          second_fundamental_form += et * et.transpose() * m_edge_curvatures(e, region);
+          mean_curvature += m_edge_curvatures(e, region);
           counter++;
 #ifdef FANGS_VERSION
           if (mesh().m_edge_to_triangle_map[e].size() > 2)
@@ -386,15 +338,7 @@ void VS3D::step_explicit(double dt) {
           vertex_area += area / 3;
         }
       }
-#endif
-      //            if (counter == 0)
-      //                mean_curvature = 0;
-      //            else
-      ////                mean_curvature = second_fundamental_form.trace() /
-      ///counter / 3;
-      //                mean_curvature /= counter;
 
-#ifdef FANGS_VERSION
 #ifdef FANGS_PATCHED
       if (triple_junction_length_sum >
           0)  // this means the vertex is a triple junction vertex; the vertex
@@ -408,11 +352,7 @@ void VS3D::step_explicit(double dt) {
       else
         mean_curvature = mean_curvature / (vertex_area * 2);
 
-      //            (*m_Gamma)[i][region] += simOptions().sigma * mean_curvature
-      //            * dt;
-      m_dbg_v1[i][region] = mean_curvature;
-
-      mean_curvatures[i][region] = mean_curvature;
+      m_vertex_curvatures(i, region) = mean_curvature;
     }
   }
 
@@ -422,7 +362,8 @@ void VS3D::step_explicit(double dt) {
   for (size_t i = 0; i < m_constrained_vertices.size(); i++)
     constrained[m_constrained_vertices[i]] = true;
 
-  for (size_t i = 0; i < mesh().nv(); i++) {
+#pragma omp parallel for
+  for (int i = 0; i < nv; i++) {
     if (constrained[i]) continue;
 
     std::set<Vec2i, Vec2iComp> incident_region_pairs;
@@ -437,7 +378,7 @@ void VS3D::step_explicit(double dt) {
          j != incident_region_pairs.end(); j++) {
       Vec2i rp = *j;
       double mean_curvature =
-          mean_curvatures[i][rp[0]] - mean_curvatures[i][rp[1]];
+          m_vertex_curvatures(i, rp[0]) - m_vertex_curvatures(i, rp[1]);
       (*m_Gamma)[i].set(
           rp, (*m_Gamma)[i].get(rp) + simOptions().sigma * mean_curvature * dt);
     }
@@ -465,6 +406,4 @@ void VS3D::step_explicit(double dt) {
   // damping
   for (size_t i = 0; i < mesh().nv(); i++)
     (*m_Gamma)[i].values *= pow(simOptions().damping_coef, dt);
-
-  std::cout << "Explicit time stepping finished" << std::endl;
 }

@@ -1056,25 +1056,15 @@ bool EdgeSplitter::split_pass() {
 
     for (; iter != sortable_edges_to_try.rend(); ++iter) {
       size_t longest_edge = iter->m_edge_index;
-      if (longest_edge == 382) std::cout << "1" << std::endl;
       if (!edge_is_splittable(longest_edge)) {
         continue;
       }
-      if (longest_edge == 382) std::cout << "2" << std::endl;
 
       bool should_split = edge_length_needs_split(longest_edge);
-      if (longest_edge == 382) std::cout << "3" << std::endl;
 
       if (should_split) {
-        if (longest_edge == 382) std::cout << "4" << std::endl;
         size_t result_vert;
-
-        std::cout << "trying to split " << longest_edge << ": "
-                  << mesh.m_edges[longest_edge] << std::endl;
         bool result = split_edge(longest_edge, result_vert);
-        std::cout << "result = " << result << std::endl;
-
-        if (longest_edge == 382) std::cout << "5:" << result << std::endl;
         split_occurred |= result;
       }
     }

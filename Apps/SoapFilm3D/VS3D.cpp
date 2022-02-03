@@ -8,6 +8,10 @@
 
 #include "VS3D.h"
 
+#ifdef PRINT_TIMING
+#include <chrono>
+#endif
+
 #include "LinearBendingForce.h"
 #include "LinearizedImplicitEuler.h"
 #include "LosTopos/LosTopos3D/subdivisionscheme.h"
@@ -54,11 +58,11 @@ VS3D::VS3D(const std::vector<LosTopos::Vec3d>& vs,
   }
   double min_edge_len = mean_edge_len * 0.5;
   double max_edge_len = mean_edge_len * 1.5;
-
+#ifdef _DEBUG
   std::cout << "mean edge length = " << mean_edge_len
             << " min edge length = " << min_edge_len
             << " max edge length = " << max_edge_len << std::endl;
-
+#endif
   LosTopos::SurfTrackInitializationParameters params;
   params.m_proximity_epsilon =
       Options::doubleValue("lostopos-collision-epsilon-fraction") *
@@ -269,18 +273,49 @@ double VS3D::step(double dt) {
   static int counter = 0;
   counter++;
 
+#ifdef PRINT_TIMING
+  using Clock = std::chrono::high_resolution_clock;
+  using TimePoint = std::chrono::time_point<Clock>;
+
+  TimePoint last_time_point;
+#endif
   if (counter % 2 == 0) {
     // mesh improvement
+#ifdef PRINT_TIMING
+    last_time_point = Clock::now();
+#endif
     for (int i = 0; i < Options::intValue("remeshing-iterations"); i++) {
       m_st->topology_changes();
       m_st->improve_mesh();
     }
-
+#ifdef PRINT_TIMING
+    std::cout << "[mesh improvement] "
+              << static_cast<scalar>(
+                     std::chrono::duration_cast<std::chrono::nanoseconds>(
+                         Clock::now() - last_time_point)
+                         .count()) *
+                     1e-6
+              << " ms" << std::endl;
+#endif
     // defrag the mesh in the end, to ensure the next step starts with a clean
     // mesh
+#ifdef PRINT_TIMING
+    last_time_point = Clock::now();
+#endif
     m_st->defrag_mesh_from_scratch(m_constrained_vertices);
+#ifdef PRINT_TIMING
+    std::cout << "[defrag_mesh_from_scratch] "
+              << static_cast<scalar>(
+                     std::chrono::duration_cast<std::chrono::nanoseconds>(
+                         Clock::now() - last_time_point)
+                         .count()) *
+                     1e-6
+              << " ms" << std::endl;
+#endif
+#ifdef _DEBUG
     for (size_t i = 0; i < m_constrained_vertices.size(); i++)
       assert(m_constrained_vertices[i] < mesh().nv());
+#endif
 
   } else {
     // update gamma due to external forces (surface tension, gravity, etc), and
@@ -291,35 +326,24 @@ double VS3D::step(double dt) {
       else
         step_implicit(dt);
     } else {
+#ifdef PRINT_TIMING
+      last_time_point = Clock::now();
+#endif
       step_explicit(dt);
+#ifdef PRINT_TIMING
+      std::cout << "[step_explicit] "
+                << static_cast<scalar>(
+                       std::chrono::duration_cast<std::chrono::nanoseconds>(
+                           Clock::now() - last_time_point)
+                           .count()) *
+                       1e-6
+                << " ms" << std::endl;
+#endif
     }
   }
-
-  //    // shift all Gamma to have zero mean. it may prevent cancellation errors
-  //    and help with stability. for (int region = 0; region < m_nregion;
-  //    region++)
-  //    {
-  //        double mean_Gamma = 0;
-  //        for (size_t i = 0; i < mesh().nv(); i++)
-  //            mean_Gamma += (*m_Gamma)[i][region];
-  //        mean_Gamma /= mesh().nv();
-  //        for (size_t i = 0; i < mesh().nv(); i++)
-  //            (*m_Gamma)[i][region] -= mean_Gamma;
-  //    }
-
-  //    // shift all Gammas on each given vertes to have zero mean. this is
-  //    justifiable because only the pairwise Gamma differences between adjacent
-  //    regions, not the Gamma values themselves, matter. for (size_t i = 0; i <
-  //    mesh().nv(); i++)
-  //    {
-  //        double mean_Gamma = 0;
-  //        for (int region = 0; region < m_nregion; region++)
-  //            mean_Gamma += (*m_Gamma)[i][region];
-  //        mean_Gamma /= m_nregion;
-  //        for (int region = 0; region < m_nregion; region++)
-  //            (*m_Gamma)[i][region] -= mean_Gamma;
-  //    }
-
+#ifdef PRINT_TIMING
+  last_time_point = Clock::now();
+#endif
   // shift all Gammas for each region pair to their global mean
   MatXd means(m_nregion, m_nregion);
   means.setZero();
@@ -362,235 +386,69 @@ double VS3D::step(double dt) {
     }
   }
 
-  //    // open boundary
-  //    for (size_t i = 0; i < mesh().nv(); i++)
-  //        if (mesh().m_is_boundary_vertex[i])
-  //            (*m_Gamma)[i] = 0;
+  std::vector<Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> >
+      incident_region_pairs(mesh().nv());
+  for (size_t i = 0; i < mesh().nv(); i++)
+    incident_region_pairs[i].setZero(m_nregion, m_nregion);
 
-  // volume gradient projection
-  //    VecXd x0 = VecXd::Zero(mesh().nv() * 3);
-  //    VecXd dx = VecXd::Zero(mesh().nv() * 3);
-  //    for (size_t i = 0; i < mesh().nv(); i++)
-  //    {
-  //        x0.segment<3>(i * 3) = vc(m_st->pm_positions[i]);
-  //        dx.segment<3>(i * 3) = vc(m_st->pm_newpositions[i] -
-  //        m_st->pm_positions[i]);
-  //    }
-  //
-  //    Vec3d ref(0, 0, 0);
-  //    for (size_t i = 0; i < mesh().nv(); i++)
-  //        ref += vc(m_st->pm_positions[i]);
-  //    ref /= mesh().nv();
-  //
-  //    VecXd gradV = VecXd::Zero(mesh().nv() * 3);
-  //    for (size_t i = 0; i < mesh().nt(); i++)
-  //    {
-  //        const LosTopos::Vec3st & t = mesh().get_triangle(i);
-  //        Vec3d x0 = vc(m_st->pm_positions[t[0]]);
-  //        Vec3d x1 = vc(m_st->pm_positions[t[1]]);
-  //        Vec3d x2 = vc(m_st->pm_positions[t[2]]);
-  //        if (mesh().get_triangle_label(i)[1] == 0)
-  //            std::swap(x0, x1);
-  //
-  //        gradV.segment<3>(t[0] * 3) += (x1 - ref).cross(x2 - ref);
-  //        gradV.segment<3>(t[1] * 3) += (x2 - ref).cross(x0 - ref);
-  //        gradV.segment<3>(t[2] * 3) += (x0 - ref).cross(x1 - ref);
-  //    }
-  //
-  //    dx = dx - gradV.dot(dx) * gradV / gradV.squaredNorm();
-  //    VecXd xnew = x0 + dx;
-  //    for (size_t i = 0; i < mesh().nv(); i++)
-  //    {
-  //        m_st->pm_newpositions[i] = vc(xnew.segment<3>(i * 3));
-  //    }
+  for (size_t i = 0; i < mesh().nt(); i++) {
+    LosTopos::Vec3st t = mesh().get_triangle(i);
+    LosTopos::Vec2i l = mesh().get_triangle_label(i);
+    incident_region_pairs[t[0]](l[0], l[1]) =
+        incident_region_pairs[t[0]](l[1], l[0]) = true;
+    incident_region_pairs[t[1]](l[0], l[1]) =
+        incident_region_pairs[t[1]](l[1], l[0]) = true;
+    incident_region_pairs[t[2]](l[0], l[1]) =
+        incident_region_pairs[t[2]](l[1], l[0]) = true;
+  }
 
-  // damping by smoothing
-  if (true) {
-    std::vector<Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic> >
-        incident_region_pairs(mesh().nv());
-    for (size_t i = 0; i < mesh().nv(); i++)
-      incident_region_pairs[i].setZero(m_nregion, m_nregion);
-
-    for (size_t i = 0; i < mesh().nt(); i++) {
-      LosTopos::Vec3st t = mesh().get_triangle(i);
-      LosTopos::Vec2i l = mesh().get_triangle_label(i);
-      incident_region_pairs[t[0]](l[0], l[1]) =
-          incident_region_pairs[t[0]](l[1], l[0]) = true;
-      incident_region_pairs[t[1]](l[0], l[1]) =
-          incident_region_pairs[t[1]](l[1], l[0]) = true;
-      incident_region_pairs[t[2]](l[0], l[1]) =
-          incident_region_pairs[t[2]](l[1], l[0]) = true;
-    }
-
-    std::vector<GammaType> newGamma = m_Gamma->m_data;
-    for (size_t i = 0; i < mesh().nv(); i++) {
-      for (int j = 0; j < m_nregion; j++) {
-        for (int k = j + 1; k < m_nregion; k++) {
-          if (incident_region_pairs[i](j, k)) {
-            double neighborhood_mean = 0;
-            int neighborhood_counter = 0;
-            for (size_t l = 0; l < mesh().m_vertex_to_edge_map[i].size(); l++) {
-              LosTopos::Vec2st e =
-                  mesh().m_edges[mesh().m_vertex_to_edge_map[i][l]];
-              size_t vother = (e[0] == i ? e[1] : e[0]);
-              if (incident_region_pairs[vother](j, k)) {
-                neighborhood_mean += (*m_Gamma)[vother].get(j, k);
-                neighborhood_counter++;
-              }
+  std::vector<GammaType> newGamma = m_Gamma->m_data;
+  for (size_t i = 0; i < mesh().nv(); i++) {
+    for (int j = 0; j < m_nregion; j++) {
+      for (int k = j + 1; k < m_nregion; k++) {
+        if (incident_region_pairs[i](j, k)) {
+          double neighborhood_mean = 0;
+          int neighborhood_counter = 0;
+          for (size_t l = 0; l < mesh().m_vertex_to_edge_map[i].size(); l++) {
+            LosTopos::Vec2st e =
+                mesh().m_edges[mesh().m_vertex_to_edge_map[i][l]];
+            size_t vother = (e[0] == i ? e[1] : e[0]);
+            if (incident_region_pairs[vother](j, k)) {
+              neighborhood_mean += (*m_Gamma)[vother].get(j, k);
+              neighborhood_counter++;
             }
-            if (neighborhood_counter != 0)
-              neighborhood_mean /= neighborhood_counter;
-            newGamma[i].set(j, k,
-                            (*m_Gamma)[i].get(j, k) +
-                                (neighborhood_mean - (*m_Gamma)[i].get(j, k)) *
-                                    simOptions().smoothing_coef * dt);
-          } else {
-            newGamma[i].set(j, k, 0);
           }
+          if (neighborhood_counter != 0)
+            neighborhood_mean /= neighborhood_counter;
+          newGamma[i].set(j, k,
+                          (*m_Gamma)[i].get(j, k) +
+                              (neighborhood_mean - (*m_Gamma)[i].get(j, k)) *
+                                  simOptions().smoothing_coef * dt);
+        } else {
+          newGamma[i].set(j, k, 0);
         }
       }
     }
-
-    for (size_t i = 0; i < mesh().nv(); i++) (*m_Gamma)[i] = newGamma[i];
   }
 
-  //    if (true)
-  //    {
-  //        for (size_t i = 0; i < mesh().nv(); i++)
-  //        {
-  //            std::vector<double> newGamma = (*m_Gamma)[i];
-  //
-  //            std::set<int> regions;
-  //            for (size_t j = 0; j <
-  //            mesh().m_vertex_to_triangle_map[i].size(); j++)
-  //            {
-  //                LosTopos::Vec2i l =
-  //                mesh().get_triangle_label(mesh().m_vertex_to_triangle_map[i][j]);
-  //                regions.insert(l[0]);
-  //                regions.insert(l[1]);
-  //            }
-  //
-  //            std::vector<std::pair<int, int> > region_pairs;
-  //            for (std::set<int>::iterator j = regions.begin(); j !=
-  //            regions.end(); j++)
-  //                for (std::set<int>::iterator k = regions.begin(); k != j;
-  //                k++)
-  //                    region_pairs.push_back(std::pair<int, int>(*j, *k));
-  //
-  //            for (size_t k = 0; k < region_pairs.size(); k++)
-  //            {
-  //                std::pair<int, int> rp = region_pairs[k];
-  //                double neighborhood_mean = 0;
-  //                int neighborhood_counter = 0;
-  //                for (size_t j = 0; j <
-  //                mesh().m_vertex_to_edge_map[i].size(); j++)
-  //                {
-  //                    size_t ei = mesh().m_vertex_to_edge_map[i][j];
-  //                    LosTopos::Vec2st e = mesh().m_edges[ei];
-  //                    size_t vother = (e[0] == i ? e[1] : e[0]);
-  //
-  //                    bool incident_to_region_pair = false;
-  //                    for (size_t l = 0; l <
-  //                    mesh().m_edge_to_triangle_map[ei].size(); l++)
-  //                    {
-  //                        LosTopos::Vec2i label =
-  //                        mesh().get_triangle_label(mesh().m_edge_to_triangle_map[ei][l]);
-  //                        if ((label[0] == rp.first && label[1] == rp.second)
-  //                        || (label[0] == rp.second && label[1] == rp.first))
-  //                        {
-  //                            incident_to_region_pair = true;
-  //                            break;
-  //                        }
-  //                    }
-  //
-  //                    if (incident_to_region_pair)
-  //                    {
-  //                        neighborhood_mean += (*m_Gamma)[vother][rp.first] -
-  //                        (*m_Gamma)[vother][rp.second];
-  //                        neighborhood_counter++;
-  //                    }
-  //                }
-  //                if (neighborhood_counter == 0)
-  //                    neighborhood_mean = 0;
-  //                else
-  //                    neighborhood_mean /= neighborhood_counter;
-  //
-  //                double old_diff = (*m_Gamma)[i][rp.first] -
-  //                (*m_Gamma)[i][rp.second]; newGamma[rp.first]  +=
-  //                (neighborhood_mean - old_diff) / 2 *
-  //                simOptions().smoothing_coef * dt; newGamma[rp.second] -=
-  //                (neighborhood_mean - old_diff) / 2 *
-  //                simOptions().smoothing_coef * dt;
-  //            }
-  //
-  //            (*m_Gamma)[i] = newGamma;
-  //        }
-  //    }
-  //
-  //    if (false)
-  //    {
-  //        for (int region = 0; region < m_nregion; region++)
-  //        {
-  //            std::vector<double> newGamma(mesh().nv(), 0);
-  //            for (size_t i = 0; i < mesh().nv(); i++)
-  //            {
-  //                double neighborhood_mean_Gamma = 0;
-  //                int neighborhood_counter = 0;
-  //                for (size_t j = 0; j <
-  //                mesh().m_vertex_to_edge_map[i].size(); j++)
-  //                {
-  //                    LosTopos::Vec2st e =
-  //                    mesh().m_edges[mesh().m_vertex_to_edge_map[i][j]];
-  //
-  //                    bool incident_to_region = false;
-  //                    for (size_t k = 0; k <
-  //                    mesh().m_edge_to_triangle_map[mesh().m_vertex_to_edge_map[i][j]].size();
-  //                    k++)
-  //                    {
-  //                        LosTopos::Vec2i l =
-  //                        mesh().get_triangle_label(mesh().m_edge_to_triangle_map[mesh().m_vertex_to_edge_map[i][j]][k]);
-  //                        if (l[0] == region || l[1] == region)
-  //                        {
-  //                            incident_to_region = true;
-  //                            break;
-  //                        }
-  //                    }
-  //                    incident_to_region = true;
-  //
-  //                    if (incident_to_region)
-  //                    {
-  //                        size_t vother = (e[0] == i ? e[1] : e[0]);
-  //                        neighborhood_mean_Gamma +=
-  //                        (*m_Gamma)[vother][region]; neighborhood_counter++;
-  //                    }
-  //                }
-  //                neighborhood_mean_Gamma /= neighborhood_counter;
-  //
-  //                newGamma[i] = (*m_Gamma)[i][region] +
-  //                (neighborhood_mean_Gamma - (*m_Gamma)[i][region]) *
-  //                simOptions().smoothing_coef * dt;
-  //            }
-  //
-  //            for (size_t i = 0; i < mesh().nv(); i++)
-  //                (*m_Gamma)[i][region] = newGamma[i];
-  //        }
-  //    }
+  for (size_t i = 0; i < mesh().nv(); i++) (*m_Gamma)[i] = newGamma[i];
+#ifdef PRINT_TIMING
+  std::cout << "[update Gamma] "
+            << static_cast<scalar>(
+                   std::chrono::duration_cast<std::chrono::nanoseconds>(
+                       Clock::now() - last_time_point)
+                       .count()) *
+                   1e-6
+            << " ms" << std::endl;
 
+  last_time_point = Clock::now();
+#endif
   // before enforcing constraints, first scan through the mesh to find any solid
   // vertices not registered as constraints. they can appear due to remeshing
   // (splitting an all-solid edge)
   std::vector<int> constrained_vertices_map(mesh().nv(), -1);
   for (size_t i = 0; i < m_constrained_vertices.size(); i++)
     constrained_vertices_map[m_constrained_vertices[i]] = i;
-
-  /*    for (size_t i = 0; i < mesh().nv(); i++)
-      {
-          if (m_st->vertex_is_any_solid(i) && constrained_vertices_map[i] < 0)
-          {
-              m_constrained_vertices.push_back(i);
-              m_constrained_positions.push_back(pos(i));
-          }
-      }*/
 
   // contruct the open boudnary extra faces
   m_obefc.clear();
@@ -707,7 +565,15 @@ double VS3D::step(double dt) {
   for (size_t i = 0; i < mesh().nv(); i++)
     m_st->pm_newpositions[i] =
         m_st->pm_positions[i] + vc(newv.segment<3>(i * 3)) * dt;
-
+#ifdef PRINT_TIMING
+  std::cout << "[solve open boundary] "
+            << static_cast<scalar>(
+                   std::chrono::duration_cast<std::chrono::nanoseconds>(
+                       Clock::now() - last_time_point)
+                       .count()) *
+                   1e-6
+            << " ms" << std::endl;
+#endif
   // project to remove motion on the constrained vertices
 
   // assume that constrained vertices can only be manifold for now
@@ -718,6 +584,9 @@ double VS3D::step(double dt) {
   //  displacement correction because they just passively move to wherever they
   //  are prescribed to go. So they don't appear in either columns or rows in
   //  the solve.
+#ifdef PRINT_TIMING
+  last_time_point = Clock::now();
+#endif
   std::vector<int> constrained_vertex_nonconstrained_neighbors(
       m_constrained_vertices.size(),
       0);  // how many non-fully-constrained incident faces each constrained
@@ -894,8 +763,6 @@ double VS3D::step(double dt) {
                     .dot(constrained_vertex_normal[ii]);
     }
 
-    //    VecXd result = A.partialPivLu().solve(rhs); // the solution is the
-    //    additional circulation needed to be added to the constrained vertices
     double lambda =
         (m_st->m_min_edge_length + m_st->m_max_edge_length) / 2 * 0.1;
     VecXd result =
@@ -923,230 +790,38 @@ double VS3D::step(double dt) {
     size_t i = m_constrained_vertices[ii];
     m_st->pm_newpositions[i] = vc(m_constrained_positions[ii]);
   }
-
+#ifdef PRINT_TIMING
+  std::cout << "[enforce the constraints] "
+            << static_cast<scalar>(
+                   std::chrono::duration_cast<std::chrono::nanoseconds>(
+                       Clock::now() - last_time_point)
+                       .count()) *
+                   1e-6
+            << " ms" << std::endl;
+#endif
   // move the mesh
   if (counter % 2 != 0) {
+#ifdef PRINT_TIMING
+    last_time_point = Clock::now();
+#endif
     double actual_dt;
     m_st->integrate(dt, actual_dt);
     if (actual_dt != dt)
       std::cout << "Warning: SurfTrack::integrate() failed to step the full "
                    "length of the time step!"
                 << std::endl;
+#ifdef PRINT_TIMING
+    std::cout << "[integrate] "
+              << static_cast<scalar>(
+                     std::chrono::duration_cast<std::chrono::nanoseconds>(
+                         Clock::now() - last_time_point)
+                         .count()) *
+                     1e-6
+              << " ms" << std::endl;
+#endif
   }
-
-  //    update_dbg_quantities();
 
   return (counter % 2 == 0 ? 0 : dt);
-}
-
-void VS3D::update_dbg_quantities() {
-  // compute the vertex velocities for rendering
-  if (false) {
-    m_dbg_v2.clear();
-    m_dbg_v2.resize(mesh().nv());
-    for (size_t i = 0; i < mesh().nv(); i++) {
-      Vec3d v(0, 0, 0);
-      Vec3d x = pos(i);
-
-      for (size_t j = 0; j < mesh().nt(); j++) {
-        LosTopos::Vec3st t = mesh().get_triangle(j);
-        LosTopos::Vec2i l = mesh().get_triangle_label(j);
-        Vec3d xp = (pos(t[0]) + pos(t[1]) + pos(t[2])) / 3;
-
-        Vec3d e01 = pos(t[1]) - pos(t[0]);
-        Vec3d e12 = pos(t[2]) - pos(t[1]);
-        Vec3d e20 = pos(t[0]) - pos(t[2]);
-
-        Vec3d gamma =
-            -(e01 * (*m_Gamma)[t[2]].get(l) + e12 * (*m_Gamma)[t[0]].get(l) +
-              e20 * (*m_Gamma)[t[1]].get(l));
-
-        Vec3d dx = x - xp;
-        //                double dxn = dx.norm();
-        double dxn = sqrt(dx.squaredNorm() + m_delta * m_delta);
-
-        v += gamma.cross(dx) / (dxn * dxn * dxn);
-        //                v += gamma.cross(dx) / (dxn * dxn * dxn) * (1 -
-        //                exp(-dxn / m_delta));
-      }
-
-      v /= (4 * M_PI);
-      m_dbg_v2[i] = v;
-    }
-  }
-
-  // compute the mean curvatures
-  if (true) {
-    m_dbg_v1.clear();
-    m_dbg_e1.clear();
-    m_dbg_v1.resize(mesh().nv(), std::vector<double>(m_nregion, 0));
-    m_dbg_e1.resize(mesh().ne(), std::vector<double>(m_nregion, 0));
-
-    std::vector<std::vector<double> > curvature(
-        mesh().ne(),
-        std::vector<double>(m_nregion,
-                            0));  // edge-aligned curvature (signed scalar)
-    for (size_t region = 0; region < m_nregion; region++) {
-      for (size_t i = 0; i < mesh().ne(); i++) {
-        std::vector<size_t>
-            incident_faces;  // faces incident to edge i that have the label of
-                             // interest (assume there are only two of them for
-                             // now; this can be false only when complex
-                             // collision prevents immediate T1 resolution,
-                             // which is not expected to happen for bubble
-                             // complexes.)
-        std::set<int> incident_regions;
-        for (size_t j = 0; j < mesh().m_edge_to_triangle_map[i].size(); j++) {
-          const LosTopos::Vec2i& l =
-              mesh().get_triangle_label(mesh().m_edge_to_triangle_map[i][j]);
-          if (l[0] == region || l[1] == region) incident_faces.push_back(j);
-          incident_regions.insert(l[0]);
-          incident_regions.insert(l[1]);
-        }
-        if (incident_faces.size() == 0) continue;
-        //                assert(incident_faces.size() == 2);
-        if (incident_faces.size() != 2) {
-          //                    std::cout << "Warning: incident_faces.size() !=
-          //                    2" << std::endl; std::cout << "e = " << i << "
-          //                    region = " << region << " n = " <<
-          //                    incident_faces.size() << ": "; for (size_t k =
-          //                    0; k < incident_faces.size(); k++) std::cout <<
-          //                    mesh().m_edge_to_triangle_map[i][incident_faces[k]]
-          //                    << " "; std::cout << std::endl;
-          curvature[i][region] = 0;
-          continue;
-        }
-        bool nonmanifold = (incident_regions.size() > 2);
-
-        //                assert(mesh().m_edge_to_triangle_map[i].size() == 2);
-        int v0 = mesh().m_edges[i][0];
-        int v1 = mesh().m_edges[i][1];
-        Vec3d x0 = pos(v0);
-        Vec3d x1 = pos(v1);
-        Vec3d et = (x1 - x0);
-
-        int ti0 = mesh().m_edge_to_triangle_map[i][incident_faces[0]];
-        int ti1 = mesh().m_edge_to_triangle_map[i][incident_faces[1]];
-        LosTopos::Vec3st t0 = mesh().get_triangle(ti0);
-        LosTopos::Vec3st t1 = mesh().get_triangle(ti1);
-
-        if (mesh().get_triangle_label(
-                ti0)[mesh().oriented(v0, v1, t0) ? 1 : 0] == region)
-          std::swap(ti0, ti1),
-              std::swap(
-                  t0,
-                  t1);  // the region of interest should be to the CCW direction
-                        // of t0 when looking along the direciton of edge i
-
-        assert(mesh().get_triangle_label(
-                   ti0)[mesh().oriented(v0, v1, t0) ? 0 : 1] == region);
-        assert(mesh().get_triangle_label(
-                   ti1)[mesh().oriented(v0, v1, t1) ? 1 : 0] == region);
-
-        Vec3d n0 = (pos(t0[1]) - pos(t0[0])).cross(pos(t0[2]) - pos(t0[0]));
-        if (mesh().get_triangle_label(ti0)[1] == region)
-          n0 = -n0;  // n0 should point away from the region of interest
-
-        Vec3d n1 = (pos(t1[1]) - pos(t1[0])).cross(pos(t1[2]) - pos(t1[0]));
-        if (mesh().get_triangle_label(ti1)[1] == region)
-          n1 = -n1;  // n1 should point away from the region of interest
-
-        double edgeArea = (n0.norm() + n1.norm()) / 2 / 3;
-        n0.normalize();
-        n1.normalize();
-
-        //                double curvature_i = 0;
-        //                if (nonmanifold)
-        //                {
-        //                    curvature_i = n0.cross(n1).dot(et) / (et.norm() *
-        //                    m_delta); // integral curvature along the curve
-        //                    orghotonal to the edge in plane
-        //                } else
-        //                {
-        //                    curvature_i = n0.cross(n1).dot(et) / edgeArea;
-        ////                    curvature_i = angleAroundAxis(n0, n1, et) *
-        ///et.norm() / edgeArea;
-        //                }
-
-        double curvature_i = n0.cross(n1).dot(et);
-        //                double curvature_i = (n0 - n1).dot((n0 +
-        //                n1).normalized().cross(et));
-
-        curvature[i][region] = curvature_i;
-        //                if (region == 1)
-        //                    m_dbg_e1[i] = curvature_i;
-        m_dbg_e1[i][region] = curvature_i;
-      }
-
-      //            for (size_t i = 0; i < mesh().nv(); i++)
-      //            {
-      //                double mean_curvature = 0;
-      //                for (size_t j = 0; j <
-      //                mesh().m_vertex_to_edge_map[i].size(); j++)
-      //                    mean_curvature +=
-      //                    curvature[mesh().m_vertex_to_edge_map[i][j]][region];
-      //                mean_curvature /= mesh().m_vertex_to_edge_map[i].size();
-      //
-      //                (*m_Gamma)[i][region] += simOptions().sigma *
-      //                mean_curvature * dt; m_dbg_v1[i][region] =
-      //                mean_curvature;
-      //            }
-
-      for (size_t i = 0; i < mesh().nv(); i++) {
-        double mean_curvature = 0;
-
-        Mat3d second_fundamental_form = Mat3d::Zero();
-        int counter = 0;
-        double vertex_area = 0;
-        for (size_t j = 0; j < mesh().m_vertex_to_edge_map[i].size(); j++) {
-          size_t e = mesh().m_vertex_to_edge_map[i][j];
-          bool incident_to_region = false;
-          for (size_t k = 0; k < mesh().m_edge_to_triangle_map[e].size(); k++) {
-            const LosTopos::Vec2i& l =
-                mesh().get_triangle_label(mesh().m_edge_to_triangle_map[e][k]);
-            if (l[0] == region || l[1] == region) {
-              incident_to_region = true;
-              break;
-            }
-          }
-
-          if (incident_to_region) {
-            Vec3d et = (pos(mesh().m_edges[e][1]) - pos(mesh().m_edges[e][0]))
-                           .normalized();
-            second_fundamental_form +=
-                et * et.transpose() * curvature[e][region];
-            mean_curvature += curvature[e][region];
-            counter++;
-          }
-        }
-
-        for (size_t j = 0; j < mesh().m_vertex_to_triangle_map[i].size(); j++) {
-          const LosTopos::Vec3st& t =
-              mesh().m_tris[mesh().m_vertex_to_triangle_map[i][j]];
-          const LosTopos::Vec2i& l =
-              mesh().get_triangle_label(mesh().m_vertex_to_triangle_map[i][j]);
-          if (l[0] == region || l[1] == region) {
-            Vec3d x0 = pos(t[0]);
-            Vec3d x1 = pos(t[1]);
-            Vec3d x2 = pos(t[2]);
-            double area = (x1 - x0).cross(x2 - x0).norm() / 2;
-            vertex_area += area / 3;
-          }
-        }
-
-        //                if (counter == 0)
-        //                    mean_curvature = 0;
-        //                else
-        ////                    mean_curvature = second_fundamental_form.trace()
-        //// counter / 3;
-        //                    mean_curvature /= counter;
-
-        mean_curvature = mean_curvature / (vertex_area * 2);
-
-        m_dbg_v1[i][region] = mean_curvature;
-      }
-    }
-  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1172,9 +847,11 @@ bool VS3D::generate_collapsed_position(LosTopos::SurfTrack& st, size_t v0,
 
 bool VS3D::generate_split_position(LosTopos::SurfTrack& st, size_t v0,
                                    size_t v1, LosTopos::Vec3d& pos) {
+#ifdef _DEBUG
   std::cout << "solid callback: generate split position: " << v0 << " " << v1
             << " " << (st.vertex_is_any_solid(v0) && st.vertex_is_any_solid(v1))
             << std::endl;
+#endif
   pos = (st.pm_positions[v0] + st.pm_positions[v1]) / 2;
   if (st.vertex_is_any_solid(v0) && st.vertex_is_any_solid(v1))
     return false;
@@ -1266,15 +943,19 @@ void VS3D::pre_collapse(const LosTopos::SurfTrack& st, size_t e, void** data) {
   }
 
   *data = (void*)td;
+#ifdef _DEBUG
   std::cout << "pre collapse: " << e << ": " << td->v0 << " " << td->v1
             << std::endl;
+#endif
 }
 
 void VS3D::post_collapse(const LosTopos::SurfTrack& st, size_t e,
                          size_t merged_vertex, void* data) {
   CollapseTempData* td = (CollapseTempData*)data;
+#ifdef _DEBUG
   std::cout << "post collapse: " << e << ": " << td->v0 << " " << td->v1
             << " => " << merged_vertex << std::endl;
+#endif
   assert((st.m_mesh.vertex_is_deleted(td->v0) && merged_vertex == td->v1) ||
          (st.m_mesh.vertex_is_deleted(td->v1) && merged_vertex == td->v0));
 
@@ -1385,16 +1066,19 @@ void VS3D::pre_split(const LosTopos::SurfTrack& st, size_t e, void** data) {
   }
 
   *data = (void*)td;
+#ifdef _DEBUG
   std::cout << "pre split: " << e << ": " << td->v0 << " " << td->v1
             << std::endl;
+#endif
 }
 
 void VS3D::post_split(const LosTopos::SurfTrack& st, size_t e,
                       size_t new_vertex, void* data) {
   SplitTempData* td = (SplitTempData*)data;
+#ifdef _DEBUG
   std::cout << "post split: " << e << ": " << td->v0 << " " << td->v1 << " => "
             << new_vertex << std::endl;
-
+#endif
   Vec3d midpoint_x = vc(st.pm_positions[new_vertex]);
   double s = (midpoint_x - td->old_x0).dot(td->old_x1 - td->old_x0) /
              (td->old_x1 - td->old_x0).squaredNorm();
@@ -1501,14 +1185,16 @@ void VS3D::pre_t1(const LosTopos::SurfTrack& st, size_t v, void** data) {
 
 void VS3D::post_t1(const LosTopos::SurfTrack& st, size_t v, size_t a, size_t b,
                    void* data) {
+#ifdef _DEBUG
   std::cout << "v = " << v << " -> " << a << " " << b << std::endl;
+#endif
   T1TempData* td = (T1TempData*)data;
 
   (*m_Gamma)[a] = (*m_Gamma)[v];
   (*m_Gamma)[b] = (*m_Gamma)[v];
-
+#ifdef _DEBUG
   std::cout << "v Gammas: " << std::endl << (*m_Gamma)[v].values << std::endl;
-
+#endif
   for (size_t i = 0; i < td->neighbor_verts.size(); i++) {
     size_t vother = td->neighbor_verts[i];
 
@@ -1520,19 +1206,20 @@ void VS3D::post_t1(const LosTopos::SurfTrack& st, size_t v, size_t a, size_t b,
           st.m_mesh.m_vertex_to_triangle_map[vother][j]);
       rps(l[0], l[1]) = rps(l[1], l[0]) = true;
     }
-
+#ifdef _DEBUG
     std::cout << vother << std::endl
               << td->neighbor_region_pairs[i] << std::endl
               << "-> " << std::endl
               << rps << std::endl;
-
+#endif
     for (int j = 0; j < m_nregion; j++)
       for (int k = j + 1; k < m_nregion; k++)
         if (rps(j, k) && !td->neighbor_region_pairs[i](j, k))
           (*m_Gamma)[vother].set(j, k, (*m_Gamma)[v].get(j, k));
-
+#ifdef _DEBUG
     std::cout << "Gammas: " << std::endl
               << (*m_Gamma)[vother].values << std::endl;
+#endif
   }
 }
 
@@ -1601,14 +1288,18 @@ void VS3D::pre_snap(const LosTopos::SurfTrack& st, size_t v0, size_t v1,
   }
 
   *data = (void*)td;
+#ifdef _DEBUG
   std::cout << "pre snap: " << v0 << " " << v1 << std::endl;
+#endif
 }
 
 void VS3D::post_snap(const LosTopos::SurfTrack& st, size_t v_kept,
                      size_t v_deleted, void* data) {
   SnapTempData* td = (SnapTempData*)data;
+#ifdef _DEBUG
   std::cout << "post snap: " << td->v0 << " " << td->v1 << " => " << v_kept
             << std::endl;
+#endif
   assert((td->v0 == v_kept && td->v1 == v_deleted) ||
          (td->v1 == v_kept && td->v0 == v_deleted));
   assert(v_kept != v_deleted);
@@ -1626,18 +1317,21 @@ void VS3D::post_snap(const LosTopos::SurfTrack& st, size_t v_kept,
        i++) {
     LosTopos::Vec2i l = st.m_mesh.get_triangle_label(
         st.m_mesh.m_vertex_to_triangle_map[v_kept][i]);
+#ifdef _DEBUG
     std::cout << "triangle " << st.m_mesh.m_vertex_to_triangle_map[v_kept][i]
               << " label = " << l << std::endl;
+#endif
     merged_vertex_incident_region_pairs(l[0], l[1]) =
         merged_vertex_incident_region_pairs(l[1], l[0]) = true;
   }
-
+#ifdef _DEBUG
   std::cout << "v0 incident region pairs: " << std::endl
             << td->v0_incident_region_pairs << std::endl;
   std::cout << "v1 incident region pairs: " << std::endl
             << td->v1_incident_region_pairs << std::endl;
   std::cout << "merged vertex incident region pairs: " << std::endl
             << merged_vertex_incident_region_pairs << std::endl;
+#endif
 
   // for region pairs not existing in original v0 and v1, we cannot simply
   // assume 0 circulation because the neighbors that do have those region pairs
@@ -1651,8 +1345,10 @@ void VS3D::post_snap(const LosTopos::SurfTrack& st, size_t v_kept,
       if (merged_vertex_incident_region_pairs(i, j)) {
         if (!td->v0_incident_region_pairs(i, j) &&
             !td->v1_incident_region_pairs(i, j)) {
+#ifdef _DEBUG
           std::cout << "region pair " << i << " " << j
                     << " is being computed from 1-ring neighbors" << std::endl;
+#endif
           double neighborhood_mean = 0;
           int neighborhood_counter = 0;
           for (size_t k = 0; k < st.m_mesh.m_vertex_to_edge_map[v_kept].size();
@@ -1671,11 +1367,11 @@ void VS3D::post_snap(const LosTopos::SurfTrack& st, size_t v_kept,
                 break;
               }
             }
-
+#ifdef _DEBUG
             std::cout << "vother = " << vother
                       << " incident = " << incident_to_this_region_pair
                       << std::endl;
-
+#endif
             if (incident_to_this_region_pair) {
               neighborhood_mean += (*m_Gamma)[vother].get(i, j);
               neighborhood_counter++;
@@ -1697,11 +1393,13 @@ void VS3D::post_snap(const LosTopos::SurfTrack& st, size_t v_kept,
       }
     }
   }
+#ifdef _DEBUG
   std::cout << "v0 Gamma = " << std::endl
             << (*m_Gamma)[td->v0].values << std::endl;
   std::cout << "v1 Gamma = " << std::endl
             << (*m_Gamma)[td->v1].values << std::endl;
   std::cout << "new Gamma = " << std::endl << newGamma.values << std::endl;
+#endif
   (*m_Gamma)[v_kept] = newGamma;
 }
 
