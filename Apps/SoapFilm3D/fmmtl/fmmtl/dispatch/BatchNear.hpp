@@ -63,9 +63,11 @@ class BatchNear {
     p2p_compressed->execute(c);
 #else
     auto t_end = target_box_list.end();
+
+    int num_elements = static_cast<int>(target_box_list.size());
 #pragma omp parallel for
-    for (auto ti = target_box_list.begin(); ti < t_end; ++ti) {
-      target_box_type& tb = *ti;
+    for (int i = 0; i < num_elements; ++i) {
+      target_box_type& tb = target_box_list[i];
       auto s_end = source_boxes[tb.index()].end();
       for (auto si = source_boxes[tb.index()].begin(); si != s_end; ++si) {
         S2T::eval(c, *si, tb, S2T::ONE_SIDED());

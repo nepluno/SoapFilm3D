@@ -64,7 +64,6 @@ Run the Demo
 --------------------
 Running the executables without command line arguments will display usage
 information. All the data files for testing are located in the assets folder.
-Since FMMTL is not supported on Windows, running can be slower than expected.
 
 **Please run the code using the project folder that containing everything (assets, code, etc.) as the working directory.**
 

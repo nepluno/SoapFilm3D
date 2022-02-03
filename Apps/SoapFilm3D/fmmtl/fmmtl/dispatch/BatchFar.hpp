@@ -44,9 +44,10 @@ class BatchFar {
 
     if (ExpansionTraits<typename Context::expansion_type>::has_L2T) {
       // Need iterator style for OMP compatibility.
+      int num_elements = static_cast<int>(target_box_list.size());
 #pragma omp parallel for
-      for (auto ti = target_box_list.begin(); ti < target_box_list.end(); ++ti) {
-        target_box_type& tb = *ti;
+      for (int i = 0; i < num_elements; ++i) {
+        target_box_type& tb = target_box_list[i];
         auto s_end = source_boxes[tb.index()].end();
         for (auto si = source_boxes[tb.index()].begin(); si != s_end; ++si) {
           // A hacky adaption on the operator graph

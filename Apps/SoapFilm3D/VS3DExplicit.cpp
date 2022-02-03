@@ -9,13 +9,11 @@
 #include "SimOptions.h"
 #include "VS3D.h"
 
-#ifndef _MSC_VER
 #include "fmmtl/fmmtl/Direct.hpp"
 #include "fmmtl/fmmtl/KernelMatrix.hpp"
 #include "fmmtl/fmmtl/util/Clock.hpp"
 #include "fmmtl/kernel/BiotSpherical.hpp"
 #include "fmmtl/kernel/RMSpherical.hpp"
-#endif
 
 namespace {
 double angleAroundAxis(const Vec3d& v0, const Vec3d& v1,
@@ -95,7 +93,7 @@ VecXd BiotSavart_naive(VS3D& vs, const VecXd& dx) {
 
   return vel;
 }
-#ifndef _MSC_VER
+
 VecXd BiotSavart_fmmtl(VS3D& vs, const VecXd& dx) {
   // code adapted from FMMTL example test "error_biot.cpp"
 
@@ -176,13 +174,11 @@ VecXd BiotSavart_fmmtl(VS3D& vs, const VecXd& dx) {
 
   return vel;
 }
-#endif
+
 VecXd BiotSavartFunc(VS3D& vs, const VecXd& dx) {
-#ifndef _MSC_VER
   if (Options::boolValue("fmmtl"))
     return BiotSavart_fmmtl(vs, dx);
   else
-#endif
     return BiotSavart_naive(vs, dx);
 }
 

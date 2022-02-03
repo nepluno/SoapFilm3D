@@ -26,20 +26,20 @@
 namespace fmmtl {
 
 
-template <class Kernel, class DerivedExpansion>
+template <class KernelT, class DerivedExpansion>
 struct Expansion
-    : public Kernel {
+    : public KernelT {
   // The type of kernel this expansion is representing
-  typedef Kernel            kernel_type;
+  typedef KernelT            kernel_type;
   // The type of the derived expansion implementation
   typedef DerivedExpansion  expansion_type;
 
   // Default constructor
   Expansion() {}
 
-  // Forward the construction on a Kernel to the copy constructor
-  Expansion(const Kernel& K)
-      : Kernel(K) {}
+  // Forward the construction on a KernelT to the copy constructor
+  Expansion(const KernelT& K)
+      : KernelT(K) {}
 
   /** Cast down to the derived expansion */
   expansion_type& expansion() {
@@ -59,7 +59,7 @@ struct Expansion
   }
 
   /** Make sure the op() is not overridden */
-  using Kernel::operator();
+  using KernelT::operator();
 
 #if !defined(FMMTL_KERNEL)
   typedef typename KernelTraits<kernel_type>::target_type target_type;
