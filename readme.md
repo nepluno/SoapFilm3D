@@ -18,8 +18,6 @@ The following dependencies are required:
 
 * Eigen (http://eigen.tuxfamily.org)
 * OpenGL and GLUT (http://www.opengl.org/resources/libraries/glut/)
-* libPNG (https://libpng.sourceforge.io/)
-* zLib (https://www.zlib.net/)
 * GLEW (http://glew.sourceforge.net/)
 * OpenMP
 

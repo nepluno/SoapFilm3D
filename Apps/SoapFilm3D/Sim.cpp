@@ -25,7 +25,6 @@
 
 #include "Colormap.h"
 #include "PRRenderer.h"
-#include "YImage.h"
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -84,10 +83,6 @@ bool Sim::init(const std::string &option_file, bool save_outputs,
   Options::addDoubleOption("stretching", 5000.0);
   Options::addDoubleOption("bending", 250.0);
 
-  Options::addBooleanOption("output-png", true);
-  Options::addIntegerOption(
-      "output-png-every-n-frames",
-      0);  // 0 means synching with simulation frame rate (equivalent to 1).
   Options::addBooleanOption("output-mesh", false);
   Options::addIntegerOption(
       "output-mesh-every-n-frames",
@@ -352,25 +347,6 @@ void Sim::step() {
 void Sim::stepOutput(bool headless) {
   if (m_output_directory != "") {
     int frameid = (int)(time() / dt() + 0.5);
-
-    int pngfd = Options::intValue("output-png-every-n-frames");
-    if ((pngfd == 0 || frameid % pngfd == 0) &&
-        Options::boolValue("output-png") && !headless) {
-      std::stringstream png_ss;
-      png_ss << m_output_directory << "/frame" << std::setfill('0')
-             << std::setw(6) << (frameid / std::max(pngfd, 1)) << ".png";
-
-      int w, h;
-      w = glutGet(GLUT_WINDOW_WIDTH);
-      h = glutGet(GLUT_WINDOW_HEIGHT);
-
-      YImage img;
-      img.resize(w, h);
-      glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE,
-                   (unsigned char *)(img.data()));
-      img.flip();
-      img.save(png_ss.str().c_str());
-    }
 
     int meshfd = Options::intValue("output-mesh-every-n-frames");
     bool outputmesh = Options::boolValue("output-mesh");

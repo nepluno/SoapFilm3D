@@ -43,8 +43,9 @@ class PRRenderer {
  protected:
   LosTopos::NonDestructiveTriMesh& mesh() { return m_vs->mesh(); }
 
-  bool create_cube_map(const std::string& name, GLuint& tex);
-  bool load_cube_map_side(GLuint tex, GLenum side, const std::string& filename);
+  bool create_cube_map(GLuint& tex);
+  bool load_cube_map_side(GLuint tex, GLenum side, const unsigned char* content,
+                          unsigned int content_size);
 
  protected:
   VS3D* m_vs;

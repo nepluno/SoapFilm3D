@@ -7,8 +7,10 @@
 //
 
 #include "PRRenderer.h"
-
-#include <png.h>
+#define STB_IMAGE_STATIC
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#include "textures/beach.h"
 
 PRRenderer::PRRenderer(VS3D *vs)
     : m_vs(vs), m_shader_bubble(), m_shader_env(), m_tex_env(0) {
@@ -20,7 +22,7 @@ PRRenderer::PRRenderer(VS3D *vs)
   m_shader_env.setVertexAttribName("a_position", 0);
   m_shader_env.loadFromFile("Apps/SoapFilm3D/env");
 #endif
-  create_cube_map("Apps/SoapFilm3D/textures/beach", m_tex_env);
+  create_cube_map(m_tex_env);
 }
 
 namespace {
@@ -219,7 +221,7 @@ void PRRenderer::render() {
   assert(glGetError() == GL_NO_ERROR);
 }
 
-bool PRRenderer::create_cube_map(const std::string &name, GLuint &tex) {
+bool PRRenderer::create_cube_map(GLuint &tex) {
   // generate a cube-map texture to hold all the sides
   glActiveTexture(GL_TEXTURE0);
   glGenTextures(1, &tex);
@@ -227,22 +229,28 @@ bool PRRenderer::create_cube_map(const std::string &name, GLuint &tex) {
   // load each image and copy into a side of the cube-map texture
   bool success;
   success = load_cube_map_side(tex, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
-                               name + "_bottom.png");
+                               texture::beach::bottom,
+                               sizeof(texture::beach::bottom));
   assert(success);
-  success = load_cube_map_side(tex, GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-                               name + "_top.png");
+  success =
+      load_cube_map_side(tex, GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+                         texture::beach::top, sizeof(texture::beach::top));
   assert(success);
-  success = load_cube_map_side(tex, GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-                               name + "_front.png");
+  success =
+      load_cube_map_side(tex, GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+                         texture::beach::front, sizeof(texture::beach::front));
   assert(success);
-  success = load_cube_map_side(tex, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-                               name + "_back.png");
+  success =
+      load_cube_map_side(tex, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+                         texture::beach::back, sizeof(texture::beach::back));
   assert(success);
-  success = load_cube_map_side(tex, GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-                               name + "_left.png");
+  success =
+      load_cube_map_side(tex, GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+                         texture::beach::left, sizeof(texture::beach::left));
   assert(success);
-  success = load_cube_map_side(tex, GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-                               name + "_right.png");
+  success =
+      load_cube_map_side(tex, GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+                         texture::beach::right, sizeof(texture::beach::right));
   assert(success);
 
   // format cube map texture
@@ -256,95 +264,19 @@ bool PRRenderer::create_cube_map(const std::string &name, GLuint &tex) {
 }
 
 bool PRRenderer::load_cube_map_side(GLuint tex, GLenum side,
-                                    const std::string &filename) {
-  //
-  // PNG loader code adapted from:
-  //  http://zarb.org/~gc/html/libpng.html
-  //
-  png_byte header[8];  // 8 is the maximum size that can be checked
-
-  /* open file and test for it being a png */
-  FILE *fp = fopen(filename.c_str(), "rb");
-  if (!fp) {
-    std::cout << "Error: "
-              << "File " << filename << " could not be opened for reading."
-              << std::endl;
-    return false;
-  }
-
-  fread(header, 1, 8, fp);
-  if (png_sig_cmp(header, 0, 8)) {
-    std::cout << "Error: "
-              << "File " << filename << " is not recognized as a PNG file."
-              << std::endl;
-    return false;
-  }
-
-  /* initialize stuff */
-  png_structp png_ptr;
-  png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-
-  if (!png_ptr) {
-    std::cout << "Error: "
-              << "png_create_read_struct failed." << std::endl;
-    return false;
-  }
-
-  png_infop info_ptr;
-  info_ptr = png_create_info_struct(png_ptr);
-  if (!info_ptr) {
-    std::cout << "Error: "
-              << "png_create_info_struct failed." << std::endl;
-    return false;
-  }
-
-  if (setjmp(png_jmpbuf(png_ptr))) {
-    std::cout << "Error: "
-              << "Error during init_io." << std::endl;
-    return false;
-  }
-
-  png_init_io(png_ptr, fp);
-  png_set_sig_bytes(png_ptr, 8);
-
-  png_read_info(png_ptr, info_ptr);
-
-  int w = png_get_image_width(png_ptr, info_ptr);
-  int h = png_get_image_height(png_ptr, info_ptr);
-  // color_type = png_get_color_type(png_ptr, info_ptr);
-  // bit_depth = png_get_bit_depth(png_ptr, info_ptr);
-
-  int rowbytes = png_get_rowbytes(png_ptr, info_ptr);
-
-  // number_of_passes = png_set_interlace_handling(png_ptr);
-  png_read_update_info(png_ptr, info_ptr);
-
-  /* read file */
-  if (setjmp(png_jmpbuf(png_ptr))) {
-    std::cout << "Error: "
-              << "Error during read_image." << std::endl;
-    return false;
-  }
-
-  unsigned char *image_data = new unsigned char[w * h * 4];
-
-  std::vector<png_bytep> row_pointers(h, 0);
-
-  for (int y = 0; y < h; y++)
-    row_pointers[y] = (png_byte *)(image_data + rowbytes * (h - 1 - y));
-
-  png_read_image(png_ptr, &row_pointers[0]);
-
-  fclose(fp);
-
-  //    std::cout << "PNG file " << filename << " loaded successfully: " << w <<
-  //    "x" << h << "x" << (rowbytes / w) << std::endl;
+                                    const unsigned char *content,
+                                    unsigned int content_size) {
+  int w = 256;
+  int h = 256;
+  int channels = 3;
+  unsigned char *image_data =
+      stbi_load_from_memory(content, content_size, &w, &h, &channels, 0);
 
   // copy image data into 'target' side of cube map
   glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
-  glTexImage2D(side, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+  glTexImage2D(side, 0, GL_RGBA, w, h, 0, channels == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE,
                image_data);
-  delete image_data;
+  stbi_image_free(image_data);
 
   return true;
 }
