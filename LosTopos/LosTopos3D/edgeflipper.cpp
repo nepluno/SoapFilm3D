@@ -9,10 +9,12 @@
 //
 // ---------------------------------------------------------
 
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
 #include <broadphase.h>
 #include <collisionqueries.h>
 #include <edgeflipper.h>
-#include <lapack_wrapper.h>
 #include <nondestructivetrimesh.h>
 #include <runstats.h>
 #include <surftrack.h>
@@ -642,12 +644,9 @@ bool EdgeFlipper::is_Delaunay_anisotropic(size_t edge, size_t tri0, size_t tri1,
   // sum them to get a combined quadric tensor A for the patch
   Mat33d A = mat0 + mat1 + mat2 + mat3;
 
-  // perform eigen decomposition to determine the eigen vectors/values
-  double eigenvalues[3];
-  double work[9];
-  int info = ~0, n = 3, lwork = 9;
-  LAPACK::get_eigen_decomposition(&n, A.a, &n, eigenvalues, work, &lwork,
-                                  &info);
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
+  es.compute(Eigen::Map<Eigen::Matrix3d>(A.a));
+  Eigen::Vector3d eigenvalues = es.eigenvalues();
 
   // Note that this returns the eigenvalues in ascending order, as opposed to
   // descending order described by Jiao et al.

@@ -3,8 +3,8 @@
 
 #include <algorithm>
 #include <vector>
-
-#include "blas_wrapper.h"
+#include <Eigen/Core>
+#include <Eigen/Dense>
 
 template <class T>
 T sum(std::vector<T>& data) {
@@ -20,18 +20,25 @@ void copy(const std::vector<T>& src, std::vector<T>& dest) {
 
 template <class T>
 T dot(const std::vector<T>& a, const std::vector<T>& b) {
-  return BLAS::dot((int)a.size(), &a[0], &b[0]);
+  return Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>>(a.data(),
+                                                               a.size())
+      .dot(Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>>(b.data(),
+                                                                 a.size()));
 }
 
 template <class T>
 void scale(T factor, std::vector<T>& data) {
-  BLAS::scale((int)data.size(), factor, &data[0]);
+  Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1>>(data.data(), data.size()) *=
+      factor;
 }
 
 template <class T>
 void add_scaled(T alpha, const std::vector<T>& x,
                 std::vector<T>& y) {  // y = y + alpha*x
-  BLAS::add_scaled((int)x.size(), alpha, &x[0], &y[0]);
+  Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, 1>>(y.data(), x.size()) +=
+      Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>>(x.data(),
+                                                            x.size()) *
+      alpha;
 }
 
 #endif

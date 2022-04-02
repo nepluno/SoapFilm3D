@@ -1,4 +1,6 @@
-#include <blas_wrapper.h>
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
 #include <dense_matrix.h>
 
 #include <cstring>
@@ -8,7 +10,9 @@ void DenseMatrix::clear(void) {
   value.clear();
 }
 
-void DenseMatrix::set_zero(void) { BLAS::set_zero(value); }
+void DenseMatrix::set_zero(void) {
+  Eigen::Map<Eigen::VectorXd>(value.data(), value.size()).setZero();
+}
 
 void DenseMatrix::resize(int m_, int n_) {
   m = m_;
@@ -18,27 +22,34 @@ void DenseMatrix::resize(int m_, int n_) {
 
 void DenseMatrix::apply(const double *x, double *y) const {
   assert(x && y);
-  BLAS::multiply_matrix_vector(m, n, &value[0], x, y);
+  Eigen::Map<Eigen::VectorXd>(y, m) =
+      Eigen::Map<const Eigen::MatrixXd>(value.data(), m, n) *
+      Eigen::Map<const Eigen::VectorXd>(x, n);
 }
 
 void DenseMatrix::apply_and_subtract(const double *x, const double *y,
                                      double *z) const {
   assert(x && y);
-  if (y != z) BLAS::copy(m, y, z);
-  BLAS::multiply_matrix_vector(BLAS::NoTrans, m, n, -1, &value[0], m, x, 1, 1,
-                               z);
+  Eigen::Map<Eigen::VectorXd>(z, m) =
+      Eigen::Map<const Eigen::VectorXd>(y, m) -
+      Eigen::Map<const Eigen::MatrixXd>(value.data(), m, n) *
+          Eigen::Map<const Eigen::VectorXd>(x, n);
 }
 
 void DenseMatrix::apply_transpose(const double *x, double *y) const {
   assert(x && y);
-  BLAS::multiply_matrix_vector(BLAS::Trans, m, n, 1, &value[0], m, x, 1, 0, y);
+  Eigen::Map<Eigen::VectorXd>(y, n) =
+      Eigen::Map<const Eigen::MatrixXd>(value.data(), m, n).transpose() *
+      Eigen::Map<const Eigen::VectorXd>(x, m);
 }
 
 void DenseMatrix::apply_transpose_and_subtract(const double *x, const double *y,
                                                double *z) const {
   assert(x && y);
-  if (y != z) BLAS::copy(n, y, z);
-  BLAS::multiply_matrix_vector(BLAS::Trans, m, n, -1, &value[0], m, x, 1, 1, z);
+  Eigen::Map<Eigen::VectorXd>(z, n) =
+      Eigen::Map<const Eigen::VectorXd>(y, n) -
+      Eigen::Map<const Eigen::MatrixXd>(value.data(), m, n).transpose() *
+          Eigen::Map<const Eigen::VectorXd>(x, m);
 }
 
 void DenseMatrix::write_matlab(std::ostream &output,
@@ -69,13 +80,14 @@ void transpose(const DenseMatrix &A, DenseMatrix &Atranspose) {
 void multiply(const DenseMatrix &A, const DenseMatrix &B, DenseMatrix &C) {
   assert(A.n == B.m);
   C.resize(A.m, B.n);
-  BLAS::multiply_matrix_matrix(A.m, A.n, B.m, &A.value[0], &B.value[0],
-                               &C.value[0]);
+  Eigen::Map<Eigen::MatrixXd>(C.value.data(), A.m, B.n) =
+      Eigen::Map<const Eigen::MatrixXd>(A.value.data(), A.m, A.n) *
+      Eigen::Map<const Eigen::MatrixXd>(B.value.data(), B.m, B.n);
 }
 
 void multiply_with_transpose(const DenseMatrix &A, DenseMatrix &ATA) {
   ATA.resize(A.n, A.n);
-  BLAS::multiply_matrix_matrix(BLAS::Trans, BLAS::NoTrans, A.n, A.n, A.m, 1,
-                               &A.value[0], A.m, &A.value[0], A.m, 0,
-                               &ATA.value[0], A.n);
+  Eigen::Map<Eigen::MatrixXd>(ATA.value.data(), A.n, A.n) =
+      Eigen::Map<const Eigen::MatrixXd>(A.value.data(), A.m, A.n).transpose() *
+      Eigen::Map<const Eigen::MatrixXd>(A.value.data(), A.m, A.n);
 }

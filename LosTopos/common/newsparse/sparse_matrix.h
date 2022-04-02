@@ -4,7 +4,8 @@
 // Definitions for a variety of sparse matrix formats.
 // By default everything keeps entries in sorted order, with no duplicates.
 
-#include <blas_wrapper.h>
+#include <Eigen/Core>
+#include <Eigen/Dense>
 #include <linear_operator.h>
 
 #include <list>
@@ -107,7 +108,7 @@ inline void SparseMatrixStaticCSR::apply_transpose(const double *x,
                                                    double *y) const {
   assert(x && y);
   if (x != NULL && y != NULL) {
-    BLAS::set_zero(n, y);
+    Eigen::Map<Eigen::VectorXd>(y, n).setZero();
     for (int i = 0, k = rowstart[0]; i < m; ++i) {
       double xi = x[i];
       for (; k < rowstart[i + 1]; ++k) y[colindex[k]] += value[k] * xi;

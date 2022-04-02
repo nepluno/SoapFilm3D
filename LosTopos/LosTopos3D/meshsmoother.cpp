@@ -7,9 +7,10 @@
 //  Functions related to the tangent-space mesh smoothing operation.
 //
 // ---------------------------------------------------------
+#include <Eigen/Core>
+#include <Eigen/Dense>
 
 #include <impactzonesolver.h>
-#include <lapack_wrapper.h>
 #include <mat.h>
 #include <meshsmoother.h>
 #include <nondestructivetrimesh.h>
@@ -346,26 +347,9 @@ Vec3d MeshSmoother::get_smoothing_displacement(
   }
 
   // get eigen decomposition
-  double eigenvalues[3];
-  double work[9];
-  int info = ~0, n = 3, lwork = 9;
-  LAPACK::get_eigen_decomposition(&n, A.a, &n, eigenvalues, work, &lwork,
-                                  &info);
-
-  if (info != 0) {
-    std::cout << "Eigen decomposition failed" << std::endl;
-    std::cout << "number of incident_triangles: " << triangles.size()
-              << std::endl;
-    for (size_t i = 0; i < triangles.size(); ++i) {
-      size_t triangle_index = triangles[i];
-      std::cout << "triangle: " << m_surf.m_mesh.get_triangle(triangle_index)
-                << std::endl;
-      std::cout << "normal: " << triangle_normals[triangle_index] << std::endl;
-      std::cout << "area: " << triangle_areas[triangle_index] << std::endl;
-    }
-
-    assert(0);
-  }
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
+  es.compute(Eigen::Map<Eigen::Matrix3d>(A.a));
+  Eigen::Vector3d eigenvalues = es.eigenvalues();
 
   // compute basis for null space
   std::vector<Vec3d> T;
@@ -442,26 +426,9 @@ Vec3d MeshSmoother::get_smoothing_displacement_dihedral(
   }
 
   // get eigen decomposition
-  double eigenvalues[3];
-  double work[9];
-  int info = ~0, n = 3, lwork = 9;
-  LAPACK::get_eigen_decomposition(&n, A.a, &n, eigenvalues, work, &lwork,
-                                  &info);
-
-  if (info != 0) {
-    std::cout << "Eigen decomposition failed" << std::endl;
-    std::cout << "number of incident_triangles: " << triangles.size()
-              << std::endl;
-    for (size_t i = 0; i < triangles.size(); ++i) {
-      size_t triangle_index = triangles[i];
-      std::cout << "triangle: " << m_surf.m_mesh.get_triangle(triangle_index)
-                << std::endl;
-      std::cout << "normal: " << triangle_normals[triangle_index] << std::endl;
-      std::cout << "area: " << triangle_areas[triangle_index] << std::endl;
-    }
-
-    assert(0);
-  }
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
+  es.compute(Eigen::Map<Eigen::Matrix3d>(A.a));
+  Eigen::Vector3d eigenvalues = es.eigenvalues();
 
   if (feature_edge_count == 0) {
     // do ordinary tangential smoothing (Laplacian smoothing, project out

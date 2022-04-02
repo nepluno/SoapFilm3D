@@ -130,9 +130,6 @@ vec: A templated n-dimensional vector class.  For example, Vec3d (a vector of
 3 doubles) is used all over the place.
 mat: A templated matrix class.
 gluvi: An OpenGL GUI.
-blas_wrapper and lapack_wrapper: Cross-platform interfaces to BLAS and LAPACK 
-functions.
-
 
 References
 =====================

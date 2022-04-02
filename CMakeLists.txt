@@ -38,14 +38,6 @@ if (USE_PNG)
   endif (PNG_FOUND)
 endif (USE_PNG)
 
-find_package (LAPACK REQUIRED)
-add_definitions (-DHAVE_LAPACK)
-set (DEFAULT_LIBRARIES ${DEFAULT_LIBRARIES} ${LAPACK_LIBRARIES})
-
-find_package (BLAS REQUIRED)
-add_definitions (-DHAVE_BLAS)
-set (DEFAULT_LIBRARIES ${DEFAULT_LIBRARIES} ${BLAS_LIBRARIES})
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/LosTopos/LosTopos3D)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/LosTopos/common)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/LosTopos/common/newsparse)

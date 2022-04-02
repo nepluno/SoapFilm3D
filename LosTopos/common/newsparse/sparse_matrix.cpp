@@ -1,3 +1,6 @@
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
 #include <sparse_matrix.h>
 #include <util.h>
 
@@ -96,7 +99,7 @@ void SparseMatrixDynamicCSR::apply_and_subtract(const double *x,
 void SparseMatrixDynamicCSR::apply_transpose(const double *x, double *y) const {
   assert(x && y);
   if (x != NULL && y != NULL) {
-    BLAS::set_zero(n, y);
+    Eigen::Map<Eigen::VectorXd>(y, n).setZero();
     for (int i = 0; i < m; ++i) {
       const DynamicSparseVector &r = row[i];
       double xi = x[i];
@@ -111,7 +114,9 @@ void SparseMatrixDynamicCSR::apply_transpose_and_subtract(const double *x,
                                                           double *z) const {
   assert(x && y && z);
   if (x != NULL && y != NULL && z != NULL) {
-    if (y != z) BLAS::copy(n, y, z);
+    if (y != z)
+      Eigen::Map<Eigen::VectorXd>(z, n) =
+          Eigen::Map<const Eigen::VectorXd>(y, n);
     for (int i = 0; i < m; ++i) {
       const DynamicSparseVector &r = row[i];
       double xi = x[i];
@@ -223,7 +228,9 @@ void SparseMatrixStaticCSR::apply_transpose_and_subtract(const double *x,
                                                          double *z) const {
   assert(x && y && z);
   if (x != NULL && y != NULL && z != NULL) {
-    if (y != z) BLAS::copy(n, y, z);
+    if (y != z)
+      Eigen::Map<Eigen::VectorXd>(z, n) =
+          Eigen::Map<const Eigen::VectorXd>(y, n);
     for (int i = 0, k = rowstart[0]; i < m; ++i) {
       double xi = x[i];
       for (; k < rowstart[i + 1]; ++k) z[colindex[k]] -= value[k] * xi;

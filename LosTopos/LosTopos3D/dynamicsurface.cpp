@@ -13,6 +13,9 @@
 // Includes
 // ---------------------------------------------------------
 
+#include <Eigen/Dense>
+#include <Eigen/Core>
+
 #include <broadphasegrid.h>
 #include <ccd_wrapper.h>
 #include <collisionpipeline.h>
@@ -20,7 +23,6 @@
 #include <dynamicsurface.h>
 #include <impactzonesolver.h>
 #include <iomesh.h>
-#include <lapack_wrapper.h>
 #include <mat.h>
 #include <runstats.h>
 #include <vec.h>
@@ -453,27 +455,9 @@ unsigned int DynamicSurface::compute_rank_from_triangles(
   }
 
   // get eigen decomposition
-  double eigenvalues[3];
-  double work[9];
-  int info = ~0, n = 3, lwork = 9;
-  LAPACK::get_eigen_decomposition(&n, A.a, &n, eigenvalues, work, &lwork,
-                                  &info);
-
-  if (info != 0) {
-    if (m_verbose) {
-      std::cout << "Eigen decomposition failed.  Incident triangles: "
-                << std::endl;
-      for (size_t i = 0; i < triangles.size(); ++i) {
-        size_t triangle_index = triangles[i];
-        Vec3d normal = get_triangle_normal(triangle_index);
-        double w = get_triangle_area(triangle_index);
-
-        std::cout << "normal: ( " << normal << " )    ";
-        std::cout << "area: " << w << std::endl;
-      }
-    }
-    return 4;
-  }
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
+  es.compute(Eigen::Map<Eigen::Matrix3d>(A.a));
+  Eigen::Vector3d eigenvalues = es.eigenvalues();
 
   // compute rank of primary space
   unsigned int rank = 0;

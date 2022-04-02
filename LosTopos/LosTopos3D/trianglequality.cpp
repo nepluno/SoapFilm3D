@@ -14,7 +14,8 @@
 #include <limits>
 #include <set>
 
-#include "lapack_wrapper.h"
+#include <Eigen/Core>
+#include <Eigen/Dense>
 
 // ---------------------------------------------------------
 ///
@@ -273,12 +274,6 @@ double estimated_max_curvature(const SurfTrack& surf, size_t vertex) {
     double uval = dot(diff, u);
     double vval = dot(diff, v);
     rhs[row] = dot(diff, normal);
-    /*Mat[row*numneighbors] = uval*uval;
-    Mat[row*numneighbors+1] = vval*vval;
-    Mat[row*numneighbors+2] = uval*vval;
-    Mat[row*numneighbors+3] = uval;
-    Mat[row*numneighbors+4] = vval;
-    Mat[row*numneighbors+5] = 1;*/
     Mat[0 * numneighbors + row] = uval * uval;
     Mat[1 * numneighbors + row] = vval * vval;
     Mat[2 * numneighbors + row] = uval * vval;
@@ -289,13 +284,10 @@ double estimated_max_curvature(const SurfTrack& surf, size_t vertex) {
   }
   assert(row == numneighbors);
 
-  int info;
-  int rank;
-  double rcond = 0;
-  LAPACK::simple_least_squares_svd(numneighbors, 6, 1, &Mat[0], numneighbors,
-                                   &rhs[0], info, rcond, rank);
-  std::vector<double> coeffs(6);
-  for (int id = 0; id < 6; ++id) coeffs[id] = rhs[id];
+  Eigen::VectorXd coeffs =
+      Eigen::Map<Eigen::MatrixXd>(Mat.data(), numneighbors, 6)
+          .bdcSvd()
+          .solve(Eigen::Map<Eigen::VectorXd>(rhs.data(), numneighbors));
 
   double areaElt = sqrt(1 + coeffs[3] * coeffs[3] + coeffs[4] * coeffs[4]);
   Vec3d newnormal = (normal - coeffs[3] * u - coeffs[4] * v) / areaElt;
@@ -327,11 +319,9 @@ double estimated_max_curvature(const SurfTrack& surf, size_t vertex) {
 
   // now do an eigensolve on the shape operator to find the principal
   // curvatures/directions
-  int n = 2, lwork = 10;
-  double eigenvalues[2];
-  double work[10];
-  LAPACK::get_eigen_decomposition(&n, shapeOperator.a, &n, eigenvalues, work,
-                                  &lwork, &info);
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> es;
+  es.compute(Eigen::Map<Eigen::Matrix2d>(shapeOperator.a));
+  Eigen::Vector2d eigenvalues = es.eigenvalues();
   double max_curvature =
       max(std::fabs(eigenvalues[0]), std::fabs(eigenvalues[1]));
 

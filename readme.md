@@ -18,8 +18,6 @@ The following dependencies are required:
 
 * Eigen (http://eigen.tuxfamily.org)
 * OpenGL and GLUT (http://www.opengl.org/resources/libraries/glut/)
-* LAPACK (http://www.netlib.org/lapack/)
-* BLAS (http://www.netlib.org/blas/)
 * libPNG (https://libpng.sourceforge.io/)
 * zLib (https://www.zlib.net/)
 * GLEW (http://glew.sourceforge.net/)

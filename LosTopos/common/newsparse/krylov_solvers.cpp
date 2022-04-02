@@ -1,4 +1,5 @@
-#include <blas_wrapper.h>
+#include <Eigen/Core>
+#include <Eigen/Dense>
 #include <krylov_solvers.h>
 
 #include <cassert>
@@ -18,46 +19,57 @@ KrylovSolverStatus CG_Solver::solve(const LinearOperator &A, const double *rhs,
     s.resize(n);
   }
   // convergence tolerance
-  double tol = tolerance_factor * BLAS::abs_max(n, rhs);
+  double tol =
+      tolerance_factor *
+      Eigen::Map<const Eigen::VectorXd>(rhs, n).lpNorm<Eigen::Infinity>();
   // initial guess
   if (use_given_initial_guess) {
     A.apply_and_subtract(result, rhs, &r[0]);
   } else {
-    BLAS::set_zero(n, result);
-    BLAS::copy(n, rhs, &r[0]);
+    Eigen::Map<Eigen::VectorXd>(result, n).setZero();
+    Eigen::Map<Eigen::VectorXd>(r.data(), n) =
+        Eigen::Map<const Eigen::VectorXd>(rhs, n);
   }
   // check instant convergence
   iteration = 0;
-  residual_norm = BLAS::abs_max(r);
+  residual_norm =
+      Eigen::Map<const Eigen::VectorXd>(r.data(), n).lpNorm<Eigen::Infinity>();
   if (residual_norm == 0) return status = KRYLOV_CONVERGED;
   // set up CG
   double rho;
   if (preconditioner)
     preconditioner->apply(r, z);
   else
-    BLAS::copy(r, z);
-  rho = BLAS::dot(r, z);
+    z = r;
+  rho = Eigen::Map<const Eigen::VectorXd>(r.data(), n)
+            .dot(Eigen::Map<const Eigen::VectorXd>(z.data(), n));
   if (rho <= 0 || rho != rho) return status = KRYLOV_BREAKDOWN;
-  BLAS::copy(z, s);
+  s = z;
   // and iterate
   for (iteration = 1; iteration < max_iterations; ++iteration) {
     double alpha;
     A.apply(s, z);  // reusing z=A*s
-    double sz = BLAS::dot(s, z);
+    double sz = Eigen::Map<const Eigen::VectorXd>(s.data(), n)
+                    .dot(Eigen::Map<const Eigen::VectorXd>(z.data(), n));
     if (sz <= 0 || sz != sz) return status = KRYLOV_BREAKDOWN;
     alpha = rho / sz;
-    BLAS::add_scaled(n, alpha, &s[0], result);
-    BLAS::add_scaled(-alpha, z, r);
-    residual_norm = BLAS::abs_max(r);
+    Eigen::Map<Eigen::VectorXd>(result, n) +=
+        Eigen::Map<const Eigen::VectorXd>(s.data(), n) * alpha;
+    Eigen::Map<Eigen::VectorXd>(r.data(), n) +=
+        -Eigen::Map<const Eigen::VectorXd>(z.data(), n) * alpha;
+    residual_norm = Eigen::Map<const Eigen::VectorXd>(r.data(), n)
+                        .lpNorm<Eigen::Infinity>();
     if (residual_norm <= tol) return status = KRYLOV_CONVERGED;
     if (preconditioner)
       preconditioner->apply(r, z);
     else
-      BLAS::copy(r, z);
-    double rho_new = BLAS::dot(r, z);
+      z = r;
+    double rho_new = Eigen::Map<const Eigen::VectorXd>(r.data(), n)
+                         .dot(Eigen::Map<const Eigen::VectorXd>(z.data(), n));
     if (rho_new <= 0 || rho_new != rho_new) return status = KRYLOV_BREAKDOWN;
     double beta = rho_new / rho;
-    BLAS::add_scaled(beta, s, z);
+    Eigen::Map<Eigen::VectorXd>(z.data(), n) +=
+        Eigen::Map<const Eigen::VectorXd>(s.data(), n) * beta;
     s.swap(z);  // s=beta*s+z
     rho = rho_new;
   }
@@ -81,48 +93,61 @@ KrylovSolverStatus MINRES_CR_Solver::solve(const LinearOperator &A,
     t.resize(n);
   }
   // convergence tolerance
-  double tol = tolerance_factor * BLAS::abs_max(n, rhs);
+  double tol =
+      tolerance_factor *
+      Eigen::Map<const Eigen::VectorXd>(rhs, n).lpNorm<Eigen::Infinity>();
   // initial guess
   if (use_given_initial_guess) {
     A.apply_and_subtract(result, rhs, &r[0]);
   } else {
-    BLAS::set_zero(n, result);
-    BLAS::copy(n, rhs, &r[0]);
+    Eigen::Map<Eigen::VectorXd>(result, n).setZero();
+    Eigen::Map<Eigen::VectorXd>(r.data(), n) =
+        Eigen::Map<const Eigen::VectorXd>(rhs, n);
   }
   // check instant convergence
   iteration = 0;
-  residual_norm = BLAS::abs_max(r);
+  residual_norm =
+      Eigen::Map<const Eigen::VectorXd>(r.data(), n).lpNorm<Eigen::Infinity>();
   if (residual_norm == 0) return status = KRYLOV_CONVERGED;
   // set up CR
   double rho;
   if (preconditioner)
     preconditioner->apply(r, z);
   else
-    BLAS::copy(r, s);
+    s = r;
   A.apply(s, t);
-  rho = BLAS::dot(r, t);
+  rho = Eigen::Map<const Eigen::VectorXd>(r.data(), n)
+            .dot(Eigen::Map<const Eigen::VectorXd>(t.data(), n));
   if (rho == 0 || rho != rho) return status = KRYLOV_BREAKDOWN;
   // and iterate
   for (iteration = 1; iteration < max_iterations; ++iteration) {
     double alpha;
-    double tt = BLAS::dot(t, t);
+    double tt = Eigen::Map<const Eigen::VectorXd>(t.data(), n)
+                    .dot(Eigen::Map<const Eigen::VectorXd>(t.data(), n));
     if (tt == 0 || tt != tt) return status = KRYLOV_BREAKDOWN;
     alpha = rho / tt;
-    BLAS::add_scaled(n, alpha, &s[0], result);
-    BLAS::add_scaled(-alpha, t, r);
-    residual_norm = BLAS::abs_max(r);
+    Eigen::Map<Eigen::VectorXd>(result, n) +=
+        Eigen::Map<const Eigen::VectorXd>(s.data(), n) * alpha;
+    Eigen::Map<Eigen::VectorXd>(r.data(), n) +=
+        -Eigen::Map<const Eigen::VectorXd>(t.data(), n) * alpha;
+
+    residual_norm = Eigen::Map<const Eigen::VectorXd>(r.data(), n)
+                        .lpNorm<Eigen::Infinity>();
     if (residual_norm <= tol) return KRYLOV_CONVERGED;
     if (preconditioner)
       preconditioner->apply(r, z);
     else
-      BLAS::copy(r, z);
+      z = r;
     A.apply(z, q);
-    double rho_new = BLAS::dot(r, q);
+    double rho_new = Eigen::Map<const Eigen::VectorXd>(r.data(), n)
+                         .dot(Eigen::Map<const Eigen::VectorXd>(q.data(), n));
     if (rho_new == 0 || rho_new != rho_new) return KRYLOV_BREAKDOWN;
     double beta = rho_new / rho;
-    BLAS::add_scaled(beta, s, z);
+    Eigen::Map<Eigen::VectorXd>(z.data(), n) +=
+        Eigen::Map<const Eigen::VectorXd>(s.data(), n) * beta;
     s.swap(z);  // s=beta*s+z
-    BLAS::add_scaled(beta, t, q);
+    Eigen::Map<Eigen::VectorXd>(q.data(), n) +=
+        Eigen::Map<const Eigen::VectorXd>(t.data(), n) * beta;
     t.swap(q);  // t=beta*t+q
     rho = rho_new;
   }
@@ -145,47 +170,57 @@ KrylovSolverStatus CGNR_Solver::solve(const LinearOperator &A,
   }
   // convergence tolerance
   A.apply_transpose(rhs, &r[0]);  // form A^T*rhs in r
-  double tol = tolerance_factor * BLAS::abs_max(r);
+  double tol =
+      tolerance_factor *
+      Eigen::Map<const Eigen::VectorXd>(r.data(), n).lpNorm<Eigen::Infinity>();
   // initial guess
   if (use_given_initial_guess) {
     A.apply_and_subtract(result, rhs, &u[0]);
     A.apply_transpose(u, r);
   } else {
-    BLAS::set_zero(n, result);
+    Eigen::Map<Eigen::VectorXd>(result, n).setZero();
   }
   // check instant convergence
   iteration = 0;
-  residual_norm = BLAS::abs_max(r);
+  residual_norm =
+      Eigen::Map<const Eigen::VectorXd>(r.data(), n).lpNorm<Eigen::Infinity>();
   if (residual_norm == 0) return status = KRYLOV_CONVERGED;
   // set up CG
   double rho;
   if (preconditioner)
     preconditioner->apply(r, z);
   else
-    BLAS::copy(r, z);
-  rho = BLAS::dot(r, z);
+    z = r;
+  rho = Eigen::Map<const Eigen::VectorXd>(r.data(), n)
+            .dot(Eigen::Map<const Eigen::VectorXd>(z.data(), n));
   if (rho <= 0 || rho != rho) return status = KRYLOV_BREAKDOWN;
-  BLAS::copy(z, s);
+  s = z;
   // and iterate
   for (iteration = 1; iteration < max_iterations; ++iteration) {
     double alpha;
     A.apply(s, u);
     A.apply_transpose(u, z);
-    double sz = BLAS::dot(u, u);
+    double sz = Eigen::Map<const Eigen::VectorXd>(u.data(), n)
+                    .dot(Eigen::Map<const Eigen::VectorXd>(u.data(), n));
     if (sz <= 0 || sz != sz) return status = KRYLOV_BREAKDOWN;
     alpha = rho / sz;
-    BLAS::add_scaled(n, alpha, &s[0], result);
-    BLAS::add_scaled(-alpha, z, r);
-    residual_norm = BLAS::abs_max(r);
+    Eigen::Map<Eigen::VectorXd>(result, n) +=
+        Eigen::Map<const Eigen::VectorXd>(s.data(), n) * alpha;
+    Eigen::Map<Eigen::VectorXd>(r.data(), n) +=
+        -Eigen::Map<const Eigen::VectorXd>(z.data(), n) * alpha;
+    residual_norm = Eigen::Map<const Eigen::VectorXd>(r.data(), n)
+                        .lpNorm<Eigen::Infinity>();
     if (residual_norm <= tol) return status = KRYLOV_CONVERGED;
     if (preconditioner)
       preconditioner->apply(r, z);
     else
-      BLAS::copy(r, z);
-    double rho_new = BLAS::dot(r, z);
+      z = r;
+    double rho_new = Eigen::Map<const Eigen::VectorXd>(r.data(), n)
+                         .dot(Eigen::Map<const Eigen::VectorXd>(z.data(), n));
     if (rho_new <= 0 || rho_new != rho_new) return status = KRYLOV_BREAKDOWN;
     double beta = rho_new / rho;
-    BLAS::add_scaled(beta, s, z);
+    Eigen::Map<Eigen::VectorXd>(z.data(), n) +=
+        Eigen::Map<const Eigen::VectorXd>(s.data(), n) * beta;
     s.swap(z);  // s=beta*s+z
     rho = rho_new;
 

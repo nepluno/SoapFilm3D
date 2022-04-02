@@ -16,6 +16,8 @@
 #include <mat.h>
 #include <runstats.h>
 #include <sparse_matrix.h>
+#include <Eigen/Core>
+#include <Eigen/Dense>
 
 namespace LosTopos {
 
@@ -345,7 +347,9 @@ bool ImpactZoneSolver::inelastic_projection(const ImpactZone& iz) {
         std::cout << "KRYLOV_EXCEEDED_MAX_ITERATIONS" << std::endl;
       }
 
-      double residual_norm = BLAS::abs_max(solver.r);
+      double residual_norm =
+          Eigen::Map<const Eigen::VectorXd>(solver.r.data(), solver.r.size())
+              .lpNorm<Eigen::Infinity>();
       std::cout << "residual_norm: " << residual_norm << std::endl;
     }
 

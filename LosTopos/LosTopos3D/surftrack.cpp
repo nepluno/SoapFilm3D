@@ -20,7 +20,6 @@
 #include <collisionqueries.h>
 #include <edgeflipper.h>
 #include <impactzonesolver.h>
-#include <lapack_wrapper.h>
 #include <nondestructivetrimesh.h>
 #include <runstats.h>
 #include <stdio.h>
