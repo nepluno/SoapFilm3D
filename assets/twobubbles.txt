@@ -2,7 +2,7 @@ scene			twobubbles
 time-step		0.01
 simulation-time		1000.0
 implicit-integration	0
-smoothing-coef		0
+smoothing-coef		10
 damping-coef		1
 
 output-png			1
@@ -23,6 +23,6 @@ lostopos-large-triangle-angle-to-split 160
 lostopos-min-triangle-area-fraction 0.02
 lostopos-t1-transition-enabled 1
 lostopos-t1-pull-apart-distance-fraction 0.1
-lostopos-smooth-subdivision 1
+lostopos-smooth-subdivision 0
 
 mesh-size-n		2
