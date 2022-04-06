@@ -567,8 +567,7 @@ void Sim::render(RenderMode rm, const Vec2d &mousepos, int selection_mask) {
     glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, light_direction);
   }
 
-  // pre-compute vertex normals (area-weighted face normals), for
-  // RM_OPAQUE_SMOOTH_SHADED mode
+  // pre-compute vertex normals (area-weighted face normals)
   std::vector<Vec3d> vn(m_vs->mesh().nv(), Vec3d(0, 0, 0));
   for (size_t i = 0; i < m_vs->mesh().nt(); i++) {
     LosTopos::Vec3st t = m_vs->surfTrack()->m_mesh.get_triangle(i);
@@ -586,71 +585,6 @@ void Sim::render(RenderMode rm, const Vec2d &mousepos, int selection_mask) {
     vn[t[2]] += nt;
   }
   for (size_t i = 0; i < m_vs->mesh().nv(); i++) vn[i].normalize();
-
-  if (false) {
-    glLineWidth(5);
-    glBegin(GL_LINES);
-    for (size_t i = 0; i < m_vs->mesh().nt(); i++) {
-      LosTopos::Vec3st t = m_vs->surfTrack()->m_mesh.get_triangle(i);
-      Vec3d x0 = m_vs->pos(t[0]);
-      Vec3d x1 = m_vs->pos(t[1]);
-      Vec3d x2 = m_vs->pos(t[2]);
-      Vec3d c = (x0 + x1 + x2) / 3;
-      Vec3d n = (x1 - x0).cross(x2 - x0).normalized();
-      Vec3d eout = c + n * 0.03;
-      Vec3d ein = c - n * 0.03;
-
-      LosTopos::Vec2i l = m_vs->mesh().get_triangle_label(i);
-
-      if (l[1] == 0)
-        glColor3d(1, 0, 0);
-      else if (l[1] == 1)
-        glColor3d(0, 1, 0);
-      else if (l[1] == 2)
-        glColor3d(0, 0, 1);
-      else if (l[1] == 3)
-        glColor3d(0.8, 0.8, 0);
-      else if (l[1] == 4)
-        glColor3d(0.8, 0, 0.8);
-      else if (l[1] == 5)
-        glColor3d(0, 0.8, 0.8);
-      else if (l[1] == 6)
-        glColor3d(0.4, 0.4, 1);
-      else if (l[1] == 7)
-        glColor3d(0.4, 1, 0.4);
-      else if (l[1] == 8)
-        glColor3d(1, 0.4, 0.4);
-      else
-        glColor3d(0, 0, 0);
-      glVertex3d(c[0], c[1], c[2]);
-      glVertex3d(eout[0], eout[1], eout[2]);
-
-      if (l[0] == 0)
-        glColor3d(1, 0, 0);
-      else if (l[0] == 1)
-        glColor3d(0, 1, 0);
-      else if (l[0] == 2)
-        glColor3d(0, 0, 1);
-      else if (l[0] == 3)
-        glColor3d(0.8, 0.8, 0);
-      else if (l[0] == 4)
-        glColor3d(0.8, 0, 0.8);
-      else if (l[0] == 5)
-        glColor3d(0, 0.8, 0.8);
-      else if (l[0] == 6)
-        glColor3d(0.4, 0.4, 1);
-      else if (l[0] == 7)
-        glColor3d(0.4, 1, 0.4);
-      else if (l[0] == 8)
-        glColor3d(1, 0.4, 0.4);
-      else
-        glColor3d(0, 0, 0);
-      glVertex3d(c[0], c[1], c[2]);
-      glVertex3d(ein[0], ein[1], ein[2]);
-    }
-    glEnd();
-    glLineWidth(1);
-  }
 
   glBegin(GL_TRIANGLES);
   for (size_t i = 0; i < m_vs->surfTrack()->m_mesh.nt(); i++) {
@@ -680,19 +614,9 @@ void Sim::render(RenderMode rm, const Vec2d &mousepos, int selection_mask) {
     x2 += (c - x2) * shrink;
     Vec3d n0, n1, n2;
 
-    if (rm == RM_OPAQUE_FLAT_SHADED) {
-      n0 = vc(cross(x1 - x0, x2 - x0));
-      if (m_vs->surfTrack()->m_mesh.get_triangle_label(i)[0] <
-          m_vs->surfTrack()->m_mesh.get_triangle_label(i)[1])
-        n0 = -n0;
-      n0.normalize();
-      n1 = n0;
-      n2 = n0;
-    } else {
-      n0 = vn[t[0]];
-      n1 = vn[t[1]];
-      n2 = vn[t[2]];
-    }
+    n0 = vn[t[0]];
+    n1 = vn[t[1]];
+    n2 = vn[t[2]];
 
     if (m_nearest_face == i)
       glColor4d(0.4, 0.5, 0.6, 0.5);
@@ -717,7 +641,7 @@ void Sim::render(RenderMode rm, const Vec2d &mousepos, int selection_mask) {
   }
 
   // render edges
-  if (rm != RM_OPAQUE_SMOOTH_SHADED) {
+  {
     glLineWidth(1);
     glColor3d(0, 0, 0);
     glBegin(GL_LINES);
@@ -768,7 +692,7 @@ void Sim::render(RenderMode rm, const Vec2d &mousepos, int selection_mask) {
   }
 
   // render vertices, with mean curvature coloring
-  if (rm != RM_OPAQUE_SMOOTH_SHADED) {
+  {
     glPointSize(2);
     glColor3f(0, 0, 0);
     glBegin(GL_POINTS);
@@ -789,7 +713,7 @@ void Sim::render(RenderMode rm, const Vec2d &mousepos, int selection_mask) {
   }
 
   // render constrained vertices
-  if (rm != RM_OPAQUE_SMOOTH_SHADED) {
+  {
     glPointSize(8);
     glColor3f(0, 0.7, 1);
     glBegin(GL_POINTS);
@@ -819,7 +743,7 @@ void Sim::render(RenderMode rm, const Vec2d &mousepos, int selection_mask) {
   }
 
   // render gamma
-  if (rm != RM_OPAQUE_SMOOTH_SHADED) {
+  {
     glBegin(GL_LINES);
     for (size_t i = 0; i < m_vs->mesh().nt(); i++) {
       if (rm == RM_NONMANIFOLD) {

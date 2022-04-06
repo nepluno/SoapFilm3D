@@ -41,8 +41,6 @@ class Sim {
   enum RenderMode {
     RM_TRANSPARENT,
     RM_NONMANIFOLD,
-    RM_OPAQUE_FLAT_SHADED,
-    RM_OPAQUE_SMOOTH_SHADED,
     RM_PR,
 
     RM_COUNT

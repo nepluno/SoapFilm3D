@@ -10,11 +10,6 @@ stretching			5000.0
 gravity				9.8
 radius				0.003
 
-output-png			1
-output-png-every-n-frames	5
-output-mesh			0
-output-mesh-every-n-frames	0
-
 remeshing-resolution	0.25
 remeshing-iterations	2
     

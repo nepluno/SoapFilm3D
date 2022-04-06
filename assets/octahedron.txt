@@ -5,11 +5,6 @@ implicit-integration	0
 smoothing-coef		5
 damping-coef		1
 
-output-png			1
-output-png-every-n-frames	0
-output-mesh			1
-output-mesh-every-n-frames	0
-
 remeshing-resolution	0.1
 remeshing-iterations	1
     

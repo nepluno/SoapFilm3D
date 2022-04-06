@@ -6,13 +6,6 @@ smoothing-coef		8
 damping-coef		1
 sigma 			1
 
-output-png			1
-output-png-every-n-frames	0
-output-mesh			1
-output-mesh-every-n-frames	0
-output-obj			0
-output-mesh-every-n-frames	0
-
 remeshing-resolution	0.15
 remeshing-iterations	1
     
